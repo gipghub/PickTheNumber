@@ -1,0 +1,14 @@
+{
+  "name": "pick-the-number",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Installable lottery analysis and casino strategy PWA for entertainment.",
+  "scripts": {
+    "check": "node --check src/core.js && node --check app.js && node --check service-worker.js",
+    "test": "node --test",
+    "ci": "npm run check && npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

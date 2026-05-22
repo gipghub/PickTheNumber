@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="An entertainment-first PWA for lottery number analysis and casino-game strategy helpers."
+    />
+    <meta name="theme-color" content="#101820" />
+    <title>Pick The Number</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/icon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Installable PWA</p>
+          <h1>Pick The Number</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" id="installButton" type="button" title="Install app" hidden>
+            <span aria-hidden="true">↓</span>
+            <span class="visually-hidden">Install app</span>
+          </button>
+          <span class="status-pill" id="connectionStatus">Ready</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="notice-band">
+          <strong>Entertainment only.</strong>
+          Lottery drawings are independent random events; historical patterns cannot predict future
+          winning numbers. This app helps you make balanced, data-aware picks and avoid sloppy
+          duplicate tickets, not beat the odds.
+        </section>
+
+        <nav class="primary-tabs" aria-label="Main views">
+          <button class="tab-button active" type="button" data-view="lotteryView">Lottery Lab</button>
+          <button class="tab-button" type="button" data-view="strategyView">Strategy Room</button>
+          <button class="tab-button" type="button" data-view="bankrollView">Bankroll</button>
+        </nav>
+
+        <section class="view active" id="lotteryView">
+          <div class="tool-grid">
+            <aside class="control-panel">
+              <div class="section-heading">
+                <span>Lottery</span>
+                <small id="drawCountLabel">No local draw data</small>
+              </div>
+
+              <div class="segmented" role="tablist" aria-label="Lottery game">
+                <button class="segment active" type="button" data-game="powerball">Powerball</button>
+                <button class="segment" type="button" data-game="megamillions">Mega Millions</button>
+              </div>
+
+              <div class="field-stack">
+                <label for="drawWindow">Stats window</label>
+                <select id="drawWindow">
+                  <option value="365">Last 12 months</option>
+                  <option value="730">Last 2 years</option>
+                  <option value="1826" selected>Last 5 years</option>
+                </select>
+              </div>
+
+              <div class="field-stack">
+                <label for="pickStyle">Pick style</label>
+                <select id="pickStyle">
+                  <option value="balanced" selected>Balanced blend</option>
+                  <option value="hot">Lean hot</option>
+                  <option value="cold">Lean cold</option>
+                  <option value="overdue">Lean overdue</option>
+                  <option value="random">Clean random</option>
+                </select>
+              </div>
+
+              <div class="inline-fields">
+                <div class="field-stack">
+                  <label for="ticketCount">Tickets</label>
+                  <input id="ticketCount" type="number" min="1" max="20" value="5" />
+                </div>
+                <div class="field-stack">
+                  <label for="avoidBirthdays">Avoid 1-31 bias</label>
+                  <select id="avoidBirthdays">
+                    <option value="true" selected>Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="button-row">
+                <button class="primary-action" id="syncButton" type="button">Sync Draw Data</button>
+                <button class="secondary-action" id="generateButton" type="button">Generate Picks</button>
+              </div>
+
+              <label class="upload-box" for="csvUpload">
+                <span>Import CSV backup</span>
+                <small>Use NY Open Data, Texas Lottery, or manually exported draw files.</small>
+                <input id="csvUpload" type="file" accept=".csv,text/csv" />
+              </label>
+
+              <div class="source-card">
+                <span>Data sources</span>
+                <a
+                  href="https://catalog.data.gov/dataset/lottery-powerball-winning-numbers-beginning-2010"
+                  target="_blank"
+                  rel="noreferrer"
+                  >Powerball history</a
+                >
+                <a
+                  href="https://catalog.data.gov/dataset/lottery-mega-millions-winning-numbers-beginning-2002"
+                  target="_blank"
+                  rel="noreferrer"
+                  >Mega Millions history</a
+                >
+              </div>
+            </aside>
+
+            <div class="lottery-main">
+              <section class="stats-strip" aria-label="Lottery summary">
+                <article>
+                  <span>Latest Draw</span>
+                  <strong id="latestDraw">Sync data</strong>
+                </article>
+                <article>
+                  <span>Stored Window</span>
+                  <strong id="storedWindow">0 draws</strong>
+                </article>
+                <article>
+                  <span>Current Matrix</span>
+                  <strong id="matrixLabel">5/69 + 1/26</strong>
+                </article>
+              </section>
+
+              <section class="panel">
+                <div class="section-heading">
+                  <span>Suggested Tickets</span>
+                  <small id="ticketRationale">Generated from local stats and randomness</small>
+                </div>
+                <div class="ticket-list" id="ticketList"></div>
+              </section>
+
+              <section class="analytics-grid">
+                <article class="panel">
+                  <div class="section-heading">
+                    <span>Hot Numbers</span>
+                    <small>Most frequent white balls</small>
+                  </div>
+                  <div class="number-grid" id="hotNumbers"></div>
+                </article>
+
+                <article class="panel">
+                  <div class="section-heading">
+                    <span>Cold Numbers</span>
+                    <small>Least frequent white balls</small>
+                  </div>
+                  <div class="number-grid" id="coldNumbers"></div>
+                </article>
+
+                <article class="panel">
+                  <div class="section-heading">
+                    <span>Overdue</span>
+                    <small>Longest draw gaps</small>
+                  </div>
+                  <div class="number-grid" id="overdueNumbers"></div>
+                </article>
+
+                <article class="panel">
+                  <div class="section-heading">
+                    <span>Patterns</span>
+                    <small>Recent draw shape</small>
+                  </div>
+                  <div class="pattern-list" id="patternList"></div>
+                </article>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="strategyView">
+          <nav class="sub-tabs" aria-label="Strategy games">
+            <button class="sub-tab active" type="button" data-strategy="blackjack">Blackjack</button>
+            <button class="sub-tab" type="button" data-strategy="videoPoker">Video Poker</button>
+            <button class="sub-tab" type="button" data-strategy="craps">Craps</button>
+            <button class="sub-tab" type="button" data-strategy="threeCard">3 Card Poker</button>
+            <button class="sub-tab" type="button" data-strategy="slots">Slots</button>
+          </nav>
+
+          <div class="strategy-layout">
+            <section class="strategy-panel active" id="blackjack">
+              <div class="panel">
+                <div class="section-heading">
+                  <span>Blackjack Advisor</span>
+                  <small>Common multi-deck basic strategy</small>
+                </div>
+                <div class="form-grid">
+                  <div class="field-stack">
+                    <label for="bjHandType">Hand type</label>
+                    <select id="bjHandType">
+                      <option value="hard">Hard total</option>
+                      <option value="soft">Soft total</option>
+                      <option value="pair">Pair</option>
+                    </select>
+                  </div>
+                  <div class="field-stack">
+                    <label for="bjPlayer">Player value</label>
+                    <select id="bjPlayer"></select>
+                  </div>
+                  <div class="field-stack">
+                    <label for="bjDealer">Dealer upcard</label>
+                    <select id="bjDealer"></select>
+                  </div>
+                </div>
+                <div class="advice-box" id="blackjackAdvice"></div>
+              </div>
+            </section>
+
+            <section class="strategy-panel" id="videoPoker">
+              <div class="panel">
+                <div class="section-heading">
+                  <span>Jacks or Better Hold Helper</span>
+                  <small>High-level 9/6 strategy order</small>
+                </div>
+                <div class="card-picker" id="videoPokerCards"></div>
+                <div class="advice-box" id="videoPokerAdvice"></div>
+              </div>
+            </section>
+
+            <section class="strategy-panel" id="craps">
+              <div class="panel">
+                <div class="section-heading">
+                  <span>Craps Bet Helper</span>
+                  <small>Lower-house-edge choices first</small>
+                </div>
+                <div class="form-grid">
+                  <div class="field-stack">
+                    <label for="crapsPoint">Point</label>
+                    <select id="crapsPoint">
+                      <option value="none">Come-out roll</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="8">8</option>
+                      <option value="9">9</option>
+                      <option value="10">10</option>
+                    </select>
+                  </div>
+                  <div class="field-stack">
+                    <label for="crapsBankroll">Session bankroll</label>
+                    <input id="crapsBankroll" type="number" min="20" value="200" />
+                  </div>
+                  <div class="field-stack">
+                    <label for="crapsUnit">Base unit</label>
+                    <input id="crapsUnit" type="number" min="1" value="10" />
+                  </div>
+                </div>
+                <div class="advice-box" id="crapsAdvice"></div>
+              </div>
+            </section>
+
+            <section class="strategy-panel" id="threeCard">
+              <div class="panel">
+                <div class="section-heading">
+                  <span>3 Card Poker Play/Fold</span>
+                  <small>Queen-six-four threshold</small>
+                </div>
+                <div class="card-picker compact" id="threeCardCards"></div>
+                <div class="advice-box" id="threeCardAdvice"></div>
+              </div>
+            </section>
+
+            <section class="strategy-panel" id="slots">
+              <div class="panel">
+                <div class="section-heading">
+                  <span>Slots Session Planner</span>
+                  <small>Budget, RTP, volatility</small>
+                </div>
+                <div class="form-grid">
+                  <div class="field-stack">
+                    <label for="slotBankroll">Bankroll</label>
+                    <input id="slotBankroll" type="number" min="10" value="100" />
+                  </div>
+                  <div class="field-stack">
+                    <label for="slotBet">Spin size</label>
+                    <input id="slotBet" type="number" min="0.25" step="0.25" value="1" />
+                  </div>
+                  <div class="field-stack">
+                    <label for="slotRtp">Advertised RTP %</label>
+                    <input id="slotRtp" type="number" min="80" max="99.5" step="0.1" value="94" />
+                  </div>
+                  <div class="field-stack">
+                    <label for="slotVolatility">Volatility</label>
+                    <select id="slotVolatility">
+                      <option value="low">Low</option>
+                      <option value="medium" selected>Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="advice-box" id="slotsAdvice"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="bankrollView">
+          <div class="bankroll-grid">
+            <section class="panel">
+              <div class="section-heading">
+                <span>Session Limits</span>
+                <small>Keep entertainment spend bounded</small>
+              </div>
+              <div class="form-grid">
+                <div class="field-stack">
+                  <label for="monthlyBudget">Monthly entertainment budget</label>
+                  <input id="monthlyBudget" type="number" min="0" value="80" />
+                </div>
+                <div class="field-stack">
+                  <label for="sessionsMonth">Sessions per month</label>
+                  <input id="sessionsMonth" type="number" min="1" value="4" />
+                </div>
+                <div class="field-stack">
+                  <label for="lotterySpend">Lottery spend per draw</label>
+                  <input id="lotterySpend" type="number" min="0" value="10" />
+                </div>
+              </div>
+              <div class="advice-box" id="bankrollAdvice"></div>
+            </section>
+
+            <section class="panel">
+              <div class="section-heading">
+                <span>Rules of Thumb</span>
+                <small>Practical guardrails</small>
+              </div>
+              <ul class="rule-list">
+                <li>Set the loss limit before you play, then stop at that number.</li>
+                <li>Never chase overdue lottery numbers or casino losses.</li>
+                <li>Prefer games where strategy lowers the house edge: blackjack, video poker, craps line bets with odds.</li>
+                <li>Skip side bets unless you are intentionally paying for the thrill.</li>
+                <li>Keep a note of bought lines so you do not accidentally duplicate a ticket.</li>
+              </ul>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="emptyTicketTemplate">
+      <div class="empty-state">
+        Sync or import draw data, then generate a few entertainment picks.
+      </div>
+    </template>
+
+    <script src="src/core.js" defer></script>
+    <script src="app.js" defer></script>
+  </body>
+</html>

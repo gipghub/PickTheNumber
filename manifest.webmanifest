@@ -1,0 +1,30 @@
+{
+  "name": "Pick The Number",
+  "short_name": "PickNumber",
+  "description": "Lottery number analysis and casino strategy helpers for entertainment.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#f6f8f5",
+  "theme_color": "#101820",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["entertainment", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Lottery Lab",
+      "url": "./?view=lottery"
+    },
+    {
+      "name": "Strategy Room",
+      "url": "./?view=strategy"
+    }
+  ]
+}

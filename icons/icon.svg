@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Pick The Number icon">
+  <rect width="512" height="512" rx="96" fill="#101820"/>
+  <circle cx="174" cy="172" r="82" fill="#ffffff"/>
+  <circle cx="338" cy="172" r="82" fill="#d4972b"/>
+  <circle cx="174" cy="340" r="82" fill="#0b6b5c"/>
+  <circle cx="338" cy="340" r="82" fill="#c74343"/>
+  <g font-family="Arial, sans-serif" font-size="78" font-weight="800" text-anchor="middle" dominant-baseline="central">
+    <text x="174" y="172" fill="#101820">7</text>
+    <text x="338" y="172" fill="#101820">24</text>
+    <text x="174" y="340" fill="#ffffff">11</text>
+    <text x="338" y="340" fill="#ffffff">5</text>
+  </g>
+</svg>
