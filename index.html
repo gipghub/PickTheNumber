@@ -32,11 +32,27 @@
       </header>
 
       <main>
-        <nav class="primary-tabs" aria-label="Main views">
-          <button class="tab-button active" type="button" data-view="lotteryView">Lottery Lab</button>
-          <button class="tab-button" type="button" data-view="strategyView">Strategy Room</button>
-          <button class="tab-button" type="button" data-view="bankrollView">Bankroll</button>
-        </nav>
+        <details class="play-type-box" id="playTypeBox">
+          <summary>
+            <span>Play Type</span>
+            <small id="activePlayTypeLabel">Lottery Lab</small>
+          </summary>
+          <div class="play-type-content">
+            <nav class="primary-tabs" aria-label="Main views">
+              <button class="tab-button active" type="button" data-view="lotteryView">Lottery Lab</button>
+              <button class="tab-button" type="button" data-view="strategyView">Strategy Room</button>
+              <button class="tab-button" type="button" data-view="bankrollView">Bankroll</button>
+            </nav>
+
+            <nav class="sub-tabs" aria-label="Strategy games">
+              <button class="sub-tab active" type="button" data-strategy="blackjack">Blackjack</button>
+              <button class="sub-tab" type="button" data-strategy="videoPoker">Video Poker</button>
+              <button class="sub-tab" type="button" data-strategy="craps">Craps</button>
+              <button class="sub-tab" type="button" data-strategy="threeCard">3 Card Poker</button>
+              <button class="sub-tab" type="button" data-strategy="slots">Slots</button>
+            </nav>
+          </div>
+        </details>
 
         <section class="view active" id="lotteryView">
           <div class="tool-grid">
@@ -175,14 +191,6 @@
         </section>
 
         <section class="view" id="strategyView">
-          <nav class="sub-tabs" aria-label="Strategy games">
-            <button class="sub-tab active" type="button" data-strategy="blackjack">Blackjack</button>
-            <button class="sub-tab" type="button" data-strategy="videoPoker">Video Poker</button>
-            <button class="sub-tab" type="button" data-strategy="craps">Craps</button>
-            <button class="sub-tab" type="button" data-strategy="threeCard">3 Card Poker</button>
-            <button class="sub-tab" type="button" data-strategy="slots">Slots</button>
-          </nav>
-
           <div class="strategy-layout">
             <section class="strategy-panel active" id="blackjack">
               <div class="panel">
@@ -920,6 +928,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js?v=41" defer></script>
+    <script src="app.js?v=42" defer></script>
   </body>
 </html>

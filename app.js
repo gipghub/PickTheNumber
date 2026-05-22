@@ -113,6 +113,8 @@ const elements = {
   avoidBirthdays: $("#avoidBirthdays"),
   syncButton: $("#syncButton"),
   generateButton: $("#generateButton"),
+  playTypeBox: $("#playTypeBox"),
+  activePlayTypeLabel: $("#activePlayTypeLabel"),
   csvUpload: $("#csvUpload"),
   latestDraw: $("#latestDraw"),
   storedWindow: $("#storedWindow"),
@@ -539,6 +541,7 @@ function setupNavigation() {
     button.addEventListener("click", () => {
       playGameSound("ui", "tap");
       showView(button.dataset.view);
+      collapsePlayTypeBox();
     });
   });
 
@@ -558,7 +561,9 @@ function setupNavigation() {
   $$(".sub-tab").forEach((button) => {
     button.addEventListener("click", () => {
       playGameSound(button.dataset.strategy, "enter");
+      showView("strategyView");
       showStrategy(button.dataset.strategy);
+      collapsePlayTypeBox();
     });
   });
 }
@@ -566,11 +571,25 @@ function setupNavigation() {
 function showView(viewId) {
   $$(".tab-button").forEach((item) => item.classList.toggle("active", item.dataset.view === viewId));
   $$(".view").forEach((item) => item.classList.toggle("active", item.id === viewId));
+  updatePlayTypeLabel();
 }
 
 function showStrategy(strategyId) {
   $$(".sub-tab").forEach((item) => item.classList.toggle("active", item.dataset.strategy === strategyId));
   $$(".strategy-panel").forEach((item) => item.classList.toggle("active", item.id === strategyId));
+  updatePlayTypeLabel();
+}
+
+function updatePlayTypeLabel() {
+  if (!elements.activePlayTypeLabel) return;
+  const activeView = $(".tab-button.active")?.textContent.trim() || "Lottery Lab";
+  const strategyViewActive = $("#strategyView")?.classList.contains("active");
+  const activeStrategy = $(".sub-tab.active")?.textContent.trim();
+  elements.activePlayTypeLabel.textContent = strategyViewActive && activeStrategy ? activeStrategy : activeView;
+}
+
+function collapsePlayTypeBox() {
+  if (elements.playTypeBox) elements.playTypeBox.open = false;
 }
 
 function applyInitialRoute() {
