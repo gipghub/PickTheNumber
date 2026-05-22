@@ -283,7 +283,7 @@
                 <div class="casino-visual video-poker-visual" aria-label="Video poker machine preview">
                   <div class="video-cabinet video-poker-cabinet">
                     <div class="machine-screen vp-screen">
-                      <div class="vp-paytable" aria-label="Jacks or Better paytable">
+                      <div class="vp-paytable" id="videoPokerPaytable" aria-label="Jacks or Better paytable">
                         <div class="vp-pay-labels">
                           <span>Royal Flush</span>
                           <span>Straight Flush</span>
@@ -374,12 +374,12 @@
                       </div>
                     </div>
                     <div class="machine-buttons">
-                      <span>Help</span>
-                      <span>More Games</span>
-                      <span>See Pays</span>
-                      <span>$5</span>
-                      <button id="videoPokerMachineDrawButton" type="button">Deal / Draw</button>
-                      <span>Cash Out</span>
+                      <button id="videoPokerHelpButton" type="button" data-video-poker-control="help">Help</button>
+                      <button id="videoPokerMoreGamesButton" type="button" data-video-poker-control="games">More Games</button>
+                      <button id="videoPokerSeePaysButton" type="button" data-video-poker-control="pays">See Pays</button>
+                      <button id="videoPokerBetButton" type="button" data-video-poker-control="bet">$5</button>
+                      <button id="videoPokerMachineDrawButton" type="button" data-video-poker-control="draw">Deal / Draw</button>
+                      <button id="videoPokerCashOutButton" type="button" data-video-poker-control="cashout">Cash Out</button>
                     </div>
                   </div>
                 </div>
@@ -930,6 +930,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js?v=45" defer></script>
+    <script src="app.js?v=46" defer></script>
   </body>
 </html>

@@ -164,6 +164,7 @@ const elements = {
   videoPokerHandGraphic: $("#videoPokerHandGraphic"),
   videoPokerHoldGraphic: $("#videoPokerHoldGraphic"),
   videoPokerMachineMessage: $("#videoPokerMachineMessage"),
+  videoPokerPaytable: $("#videoPokerPaytable"),
   videoPokerDealButton: $("#videoPokerDealButton"),
   videoPokerDrawButton: $("#videoPokerDrawButton"),
   videoPokerMachineDrawButton: $("#videoPokerMachineDrawButton"),
@@ -783,6 +784,11 @@ function setupCardPickers() {
   elements.videoPokerDealButton.addEventListener("click", () => dealVideoPokerHand());
   elements.videoPokerDrawButton.addEventListener("click", () => drawVideoPokerHand());
   elements.videoPokerMachineDrawButton.addEventListener("click", () => drawVideoPokerHand());
+  $("[data-video-poker-control='help']").addEventListener("click", () => showVideoPokerHelp());
+  $("[data-video-poker-control='games']").addEventListener("click", () => openVideoPokerGameMenu());
+  $("[data-video-poker-control='pays']").addEventListener("click", () => showVideoPokerPays());
+  $("[data-video-poker-control='bet']").addEventListener("click", () => setVideoPokerBet());
+  $("[data-video-poker-control='cashout']").addEventListener("click", () => cashOutVideoPoker());
   elements.threeCardDealButton.addEventListener("click", () => dealThreeCardHand());
   updateVideoPokerAdvice();
   updateThreeCardAdvice();
@@ -858,6 +864,46 @@ function drawVideoPokerHand() {
   updateVideoPokerAdvice();
   elements.videoPokerMachineMessage.textContent = "Draw Complete";
   elements.videoPokerAdvice.innerHTML += `<br>Draw replaced ${cards.length - holdIndexes.size} card${cards.length - holdIndexes.size === 1 ? "" : "s"}.`;
+}
+
+function showVideoPokerHelp() {
+  playGameSound("ui", "tap");
+  elements.videoPokerMachineMessage.textContent = "Pick Holds";
+  elements.videoPokerAdvice.innerHTML =
+    "<strong>Video poker help.</strong><br>Deal a hand, tap cards to toggle HOLD, then press Draw to replace every unheld card.";
+}
+
+function openVideoPokerGameMenu() {
+  playGameSound("ui", "tap");
+  showView("strategyView");
+  if (elements.playTypeBox) elements.playTypeBox.open = true;
+  elements.videoPokerMachineMessage.textContent = "More Games";
+  elements.videoPokerAdvice.innerHTML = "<strong>More games.</strong><br>Use the Play Type box above to switch to Blackjack, Craps, 3 Card Poker, Slots, or lottery tools.";
+}
+
+function showVideoPokerPays() {
+  playGameSound("ui", "tap");
+  elements.videoPokerPaytable.classList.toggle("is-highlighted");
+  elements.videoPokerMachineMessage.textContent = elements.videoPokerPaytable.classList.contains("is-highlighted")
+    ? "Paytable"
+    : "Play 5 Credits";
+  elements.videoPokerAdvice.innerHTML =
+    "<strong>Jacks or Better pays.</strong><br>The top screen shows the 5-credit paytable. The max-credit royal flush line is the red 4000-credit jackpot column.";
+}
+
+function setVideoPokerBet() {
+  playGameSound("blackjack", "chip");
+  elements.videoPokerMachineMessage.textContent = "Bet 5 Credits";
+  elements.videoPokerAdvice.innerHTML =
+    "<strong>Bet set to 5 credits.</strong><br>The helper assumes max-coin Jacks or Better because that is where the royal flush bonus pays properly.";
+}
+
+function cashOutVideoPoker() {
+  playGameSound("ui", "tap");
+  state.videoPokerHeldIndexes = null;
+  elements.videoPokerMachineMessage.textContent = "Cash Out";
+  elements.videoPokerAdvice.innerHTML =
+    "<strong>Cash out noted.</strong><br>This trainer does not track real money here, so the cash meter stays at $0.00.";
 }
 
 function cardKey(card) {

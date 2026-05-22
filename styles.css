@@ -2867,7 +2867,11 @@ input:focus {
   transform: translateY(-1px);
 }
 
-.video-poker-cabinet .machine-buttons span:nth-child(4) {
+.video-poker-cabinet .machine-buttons button {
+  appearance: none;
+}
+
+.video-poker-cabinet .machine-buttons > :nth-child(4) {
   min-height: 56px;
   border-radius: 50%;
   background: radial-gradient(circle, #fff17b, #d4972b);
@@ -2875,6 +2879,12 @@ input:focus {
   font-family: Impact, "Arial Black", sans-serif;
   font-size: 1.8rem;
   text-shadow: 1px 1px 0 #fff4a3;
+}
+
+.vp-paytable.is-highlighted {
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 241, 123, 0.72),
+    0 0 24px rgba(255, 241, 123, 0.46);
 }
 
 .craps-table {
