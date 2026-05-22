@@ -672,17 +672,24 @@
 @media (max-width: 620px) {
   .slot-machine.basketball-slot-machine {
     --slot-stage-width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 56px;
+    grid-template-areas:
+      "logo logo"
+      "jackpots jackpots"
+      "pots spin"
+      "reels reels"
+      "bonus bonus"
+      "dashboard dashboard";
+    gap: 5px;
     min-height: 0;
-    padding: 12px;
+    padding: 10px;
     border-width: 7px;
   }
 
   .slot-watermark {
-    inset: 118px 12px 12px;
-    opacity: 0.24;
+    inset: 106px 10px 10px;
+    opacity: 0.22;
   }
 
   .slot-machine.basketball-slot-machine::before {
@@ -690,123 +697,132 @@
   }
 
   .slot-machine.basketball-slot-machine .slot-logo {
-    order: 1;
+    grid-area: logo;
     width: 100%;
-    margin: 2px 0 3px;
+    margin: 0;
   }
 
   .slot-machine.basketball-slot-machine .slot-logo strong {
-    font-size: 1.58rem;
+    font-size: 1.2rem;
   }
 
   .slot-machine.basketball-slot-machine .slot-logo span {
-    font-size: 0.68rem;
+    font-size: 0.58rem;
   }
 
   .slot-machine.basketball-slot-machine .slot-jackpots {
-    order: 2;
+    grid-area: jackpots;
     position: relative;
     left: auto;
     top: auto;
     width: 100%;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 5px;
+    gap: 4px;
     margin-bottom: 0;
   }
 
   .slot-machine.basketball-slot-machine .slot-jackpots span {
     min-width: 0;
-    padding: 4px;
+    padding: 3px;
   }
 
   .slot-machine.basketball-slot-machine .slot-jackpots b {
-    font-size: 0.56rem;
+    font-size: 0.48rem;
   }
 
   .slot-machine.basketball-slot-machine .slot-jackpots strong {
-    font-size: 0.82rem;
+    font-size: 0.72rem;
   }
 
   .slot-machine.basketball-slot-machine .slot-window {
-    order: 3;
+    grid-area: reels;
     width: 100%;
-    margin: 0 0 5px;
-    padding: 8px 26px;
+    margin: 0;
+    padding: 7px 24px;
   }
 
   .slot-machine.basketball-slot-machine .slot-reels {
-    grid-template-rows: repeat(5, minmax(40px, 1fr));
-    gap: 4px;
+    grid-template-rows: repeat(5, minmax(28px, 1fr));
+    gap: 3px;
   }
 
   .slot-machine.basketball-slot-machine .slot-reel {
-    min-height: 42px;
+    min-height: 30px;
     border-width: 1px;
   }
 
   .slot-machine.basketball-slot-machine .slot-symbol-art {
-    width: min(36px, 90%);
-    height: min(36px, 90%);
+    width: min(27px, 88%);
+    height: min(27px, 88%);
   }
 
   .slot-pot-rack {
-    order: 6;
+    grid-area: pots;
     width: 100%;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px;
+    gap: 5px;
     margin-bottom: 0;
   }
 
   .slot-pot {
-    min-height: 72px;
+    min-height: 52px;
     align-content: end;
-    padding: 8px 6px;
+    padding: 5px 4px;
   }
 
   .slot-pot::before {
     left: 50%;
-    top: 10px;
-    width: 30px;
-    height: 24px;
+    top: 6px;
+    width: 22px;
+    height: 17px;
+    border-width: 3px;
   }
 
   .slot-pot span {
-    font-size: 0.5rem;
+    font-size: 0.4rem;
     text-align: center;
   }
 
   .slot-pot b {
-    height: 13px;
+    height: 10px;
   }
 
   .slot-bonus-plays {
-    order: 7;
+    grid-area: bonus;
     width: 100%;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
     margin-bottom: 0;
   }
 
+  .slot-bonus-plays span {
+    min-height: 24px;
+    padding: 0 3px;
+    font-size: 0.46rem;
+  }
+
   .slot-machine.basketball-slot-machine .slot-bet-badge {
-    order: 4;
-    position: relative;
-    right: auto;
-    top: auto;
-    justify-self: center;
-    width: 76px;
-    margin: 0 auto;
+    position: absolute;
+    right: 18px;
+    top: 144px;
+    z-index: 7;
+    width: 52px;
+    padding: 4px 5px;
+    font-size: 0.58rem;
   }
 
   .slot-machine.basketball-slot-machine .slot-spin-control {
-    order: 5;
+    grid-area: spin;
     position: relative;
     right: auto;
     top: auto;
-    width: 72px;
-    height: 72px;
-    margin: 0 auto;
-    border-width: 7px;
-    font-size: 0.76rem;
+    align-self: stretch;
+    justify-self: end;
+    width: 54px;
+    height: 54px;
+    margin: 0;
+    border-width: 5px;
+    font-size: 0.58rem;
   }
 
   .slot-machine.basketball-slot-machine .slot-reel strong {
@@ -814,8 +830,8 @@
   }
 
   .slot-line-labels {
-    top: 10px;
-    bottom: 10px;
+    top: 7px;
+    bottom: 7px;
   }
 
   .slot-line-labels.left {
@@ -827,20 +843,26 @@
   }
 
   .slot-line-labels span {
-    width: 20px;
-    height: 20px;
-    font-size: 0.62rem;
+    width: 18px;
+    height: 18px;
+    font-size: 0.54rem;
   }
 
   .slot-paylines {
-    inset: 10px 28px;
+    inset: 7px 24px;
   }
 
   .slot-machine.basketball-slot-machine .slot-dashboard {
-    order: 8;
+    grid-area: dashboard;
     width: 100%;
-    grid-template-columns: 1fr;
-    gap: 6px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .slot-machine.basketball-slot-machine .slot-dashboard span {
+    min-height: 24px;
+    padding: 3px;
+    font-size: 0.56rem;
   }
 }
 
