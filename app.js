@@ -80,7 +80,6 @@ const state = {
   deferredInstallPrompt: null,
   slotSpinSeed: 0,
   slotSpinning: false,
-  slotForceCollectSpin: false,
   slotVisibleSymbols: [],
   slotSpinFallback: null,
   slotSettleFallback: null,
@@ -154,7 +153,6 @@ const elements = {
   slotsAdvice: $("#slotsAdvice"),
   slotReels: $("#slotReels"),
   slotSpinButton: $("#slotSpinButton"),
-  slotTestCollectButton: $("#slotTestCollectButton"),
   slotRulesOpen: $("#slotRulesOpen"),
   slotRulesClose: $("#slotRulesClose"),
   slotRulesModal: $("#slotRulesModal"),
@@ -935,7 +933,6 @@ function setupSlots() {
     }),
   );
   elements.slotSpinButton.addEventListener("click", () => startSlotSpin());
-  elements.slotTestCollectButton.addEventListener("click", () => startSlotSpin({ forceCollect: true }));
   elements.slotReels.addEventListener("animationend", handleSlotAnimationEnd);
   elements.slotBonusScreen.addEventListener("click", (event) => {
     const pickButton = event.target.closest("[data-slot-bonus-pick]");
@@ -1002,7 +999,7 @@ function closeSlotProfile() {
   if (state.slotProfileLastFocus) state.slotProfileLastFocus.focus();
 }
 
-function startSlotSpin({ forceCollect = false } = {}) {
+function startSlotSpin() {
   if (state.slotSpinning) return;
   if (state.slotCredits < currentSlotBet()) {
     elements.slotBonusMeter.textContent = "Add credits";
@@ -1013,11 +1010,9 @@ function startSlotSpin({ forceCollect = false } = {}) {
 
   hideSlotBonusScreen();
   state.slotSpinning = true;
-  state.slotForceCollectSpin = forceCollect;
   playGameSound("slots", "spin");
   elements.slotSpinButton.disabled = true;
-  elements.slotTestCollectButton.disabled = true;
-  elements.slotSpinButton.querySelector("span").textContent = forceCollect ? "Collect..." : "Spin...";
+  elements.slotSpinButton.querySelector("span").textContent = "Spin...";
   elements.slotReels.classList.remove("is-settling");
   elements.slotReels.classList.add("is-spinning");
   window.clearTimeout(state.slotSpinFallback);
@@ -1041,9 +1036,7 @@ function finishSlotSpin() {
   window.clearTimeout(state.slotSpinFallback);
   state.slotSpinFallback = null;
   state.slotSpinSeed = Math.floor(Math.random() * 100000);
-  state.slotVisibleSymbols = state.slotForceCollectSpin
-    ? buildForcedCollectSlotSymbols()
-    : buildSlotReelSymbols(currentSlotPlan());
+  state.slotVisibleSymbols = buildSlotReelSymbols(currentSlotPlan());
   settleSlotWager();
   advanceSlotPots(state.slotVisibleSymbols);
   elements.slotReels.classList.remove("is-spinning");
@@ -1063,9 +1056,7 @@ function finishSlotSettle() {
   state.slotSettleFallback = null;
   elements.slotReels.classList.remove("is-settling");
   elements.slotSpinButton.disabled = false;
-  elements.slotTestCollectButton.disabled = false;
   elements.slotSpinButton.querySelector("span").textContent = "Spin";
-  state.slotForceCollectSpin = false;
   state.slotSpinning = false;
 }
 
@@ -1340,36 +1331,6 @@ function buildSlotReelSymbols() {
   });
 
   return reelSymbols;
-}
-
-function buildForcedCollectSlotSymbols() {
-  return [
-    "bonus-free",
-    "basketball",
-    "fire-seven",
-    "ring",
-    "basketball",
-    "scoreboard",
-    "wild",
-    "basketball",
-    "jackpot-hoop",
-    "fire-seven",
-    "bonus-free",
-    "sneaker",
-    "bonus-free",
-    "ring",
-    "scoreboard",
-    "basketball",
-    "wild",
-    "trophy",
-    "ring",
-    "jackpot-hoop",
-    "jersey",
-    "basketball",
-    "fire-seven",
-    "bonus-free",
-    "basketball",
-  ];
 }
 
 function getCurrentSlotSymbols() {
