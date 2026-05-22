@@ -1736,6 +1736,10 @@ h1 {
   line-height: 1.45;
 }
 
+.app-footer {
+  margin-top: 24px;
+}
+
 .primary-tabs,
 .sub-tabs {
   display: flex;
