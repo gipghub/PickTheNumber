@@ -78,6 +78,7 @@ const state = {
   game: "powerball",
   draws: [],
   deferredInstallPrompt: null,
+  videoPokerHeldIndexes: null,
   slotSpinSeed: 0,
   slotSpinning: false,
   slotVisibleSymbols: [],
@@ -738,8 +739,14 @@ function setupCardPickers() {
   ]);
 
   elements.videoPokerCards.addEventListener("change", () => {
+    state.videoPokerHeldIndexes = null;
     playGameSound("videoPoker", "card");
     updateVideoPokerAdvice();
+  });
+  elements.videoPokerHandGraphic.addEventListener("click", (event) => {
+    const cardButton = event.target.closest("[data-video-poker-card]");
+    if (!cardButton) return;
+    toggleVideoPokerHold(Number(cardButton.dataset.videoPokerCard));
   });
   elements.threeCardCards.addEventListener("change", () => {
     playGameSound("threeCard", "card");
@@ -781,32 +788,57 @@ function getCards(container, prefix) {
 function updateVideoPokerAdvice() {
   const cards = getCards(elements.videoPokerCards, "vp");
   if (Core.hasDuplicateCards(cards)) {
+    state.videoPokerHeldIndexes = null;
     renderVideoPokerScreen(cards, { title: "Duplicate card", detail: "" });
     elements.videoPokerAdvice.innerHTML =
       "<strong>Choose five unique cards.</strong><br>The same card cannot appear twice in a real hand.";
     return;
   }
   const result = Core.videoPokerHold(cards);
-  renderVideoPokerScreen(cards, result);
-  elements.videoPokerAdvice.innerHTML = `<strong>${result.title}</strong><br>${result.detail}`;
+  const recommendedHoldIndexes = videoPokerHoldIndexes(cards, result);
+  const holdIndexes = state.videoPokerHeldIndexes || recommendedHoldIndexes;
+  renderVideoPokerScreen(cards, result, holdIndexes);
+  elements.videoPokerAdvice.innerHTML = `<strong>${result.title}</strong><br>${result.detail}${state.videoPokerHeldIndexes ? `<br>Selected holds: ${formatVideoPokerHoldSelection(cards, holdIndexes)}.` : ""}`;
 }
 
 function dealVideoPokerHand() {
   setCardPickerCards(elements.videoPokerCards, "vp", randomCards(5));
+  state.videoPokerHeldIndexes = null;
   playGameSound("videoPoker", "card");
   updateVideoPokerAdvice();
 }
 
-function renderVideoPokerScreen(cards, result) {
-  const holdIndexes = videoPokerHoldIndexes(cards, result);
+function renderVideoPokerScreen(cards, result, holdIndexes = videoPokerHoldIndexes(cards, result)) {
   elements.videoPokerHoldGraphic.innerHTML = cards
     .map((_, index) => `<span class="${holdIndexes.has(index) ? "is-held" : ""}">Hold</span>`)
     .join("");
   elements.videoPokerHandGraphic.innerHTML = cards
-    .map((card, index) => renderVideoPokerCard(card, holdIndexes.has(index)))
+    .map((card, index) => renderVideoPokerCard(card, holdIndexes.has(index), index))
     .join("");
   elements.videoPokerMachineMessage.textContent =
     result.title === "Duplicate card" ? "Duplicate Card" : result.title.replace("Hold all five", "Play 5 Credits");
+}
+
+function toggleVideoPokerHold(index) {
+  const cards = getCards(elements.videoPokerCards, "vp");
+  if (Core.hasDuplicateCards(cards)) return;
+
+  const currentHolds = state.videoPokerHeldIndexes || videoPokerHoldIndexes(cards, Core.videoPokerHold(cards));
+  const nextHolds = new Set(currentHolds);
+  if (nextHolds.has(index)) {
+    nextHolds.delete(index);
+  } else {
+    nextHolds.add(index);
+  }
+
+  state.videoPokerHeldIndexes = nextHolds;
+  playGameSound("videoPoker", "card");
+  updateVideoPokerAdvice();
+}
+
+function formatVideoPokerHoldSelection(cards, holdIndexes) {
+  const heldCards = cards.filter((_, index) => holdIndexes.has(index));
+  return heldCards.length ? heldCards.map((card) => `${card.rank}${card.suit}`).join(", ") : "none";
 }
 
 function videoPokerHoldIndexes(cards, result) {
@@ -1299,15 +1331,15 @@ function renderGraphicCard(card) {
   return `<span class="graphic-card ${isRed ? "red" : ""}"><span>${card.rank}</span><small>${card.suit}</small></span>`;
 }
 
-function renderVideoPokerCard(card, isHeld) {
+function renderVideoPokerCard(card, isHeld, index) {
   const isRed = card.suit === "♥" || card.suit === "♦";
   const faceLabel = ["J", "Q", "K"].includes(card.rank) ? `<b class="vp-face">${card.rank}</b>` : `<b class="vp-pip">${card.suit}</b>`;
   return `
-    <span class="vp-card ${isRed ? "red" : ""} ${isHeld ? "is-held" : ""}">
+    <button class="vp-card ${isRed ? "red" : ""} ${isHeld ? "is-held" : ""}" type="button" data-video-poker-card="${index}" aria-pressed="${isHeld}" aria-label="${isHeld ? "Release" : "Hold"} ${card.rank}${card.suit}">
       <span class="vp-corner top">${card.rank}<small>${card.suit}</small></span>
       <span class="vp-card-art">${faceLabel}</span>
       <span class="vp-corner bottom">${card.rank}<small>${card.suit}</small></span>
-    </span>
+    </button>
   `;
 }
 

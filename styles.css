@@ -2660,7 +2660,19 @@ input:focus {
     linear-gradient(180deg, #fff, #f3f7fb),
     #fff;
   color: #071018;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
   box-shadow: inset 0 0 0 2px rgba(0, 72, 189, 0.16);
+}
+
+.vp-card:hover,
+.vp-card:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 3px rgba(114, 226, 255, 0.58),
+    0 0 12px rgba(114, 226, 255, 0.42);
+  transform: translateY(-1px);
 }
 
 .vp-card.red {
