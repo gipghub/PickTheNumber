@@ -12,6 +12,7 @@ const state = {
   game: "powerball",
   draws: [],
   deferredInstallPrompt: null,
+  slotSpinSeed: 0,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -62,6 +63,7 @@ const elements = {
   threeCardActionGraphic: $("#threeCardActionGraphic"),
   slotsAdvice: $("#slotsAdvice"),
   slotReels: $("#slotReels"),
+  slotSpinButton: $("#slotSpinButton"),
   slotSpinMeter: $("#slotSpinMeter"),
   slotLossMeter: $("#slotLossMeter"),
   slotStopMeter: $("#slotStopMeter"),
@@ -576,6 +578,12 @@ function setupSlots() {
   [elements.slotBankroll, elements.slotBet, elements.slotRtp, elements.slotVolatility].forEach((input) =>
     input.addEventListener("input", updateSlotsAdvice),
   );
+  elements.slotSpinButton.addEventListener("click", () => {
+    state.slotSpinSeed = Math.floor(Math.random() * 100000);
+    elements.slotReels.classList.add("is-spinning");
+    window.setTimeout(() => elements.slotReels.classList.remove("is-spinning"), 520);
+    updateSlotsAdvice();
+  });
   updateSlotsAdvice();
 }
 
@@ -619,7 +627,8 @@ function renderSlotVisual(plan) {
     Number(elements.slotBankroll.value) * 3 +
     Number(elements.slotBet.value) * 19 +
     Number(elements.slotRtp.value) * 11 +
-    volatility.length;
+    volatility.length +
+    state.slotSpinSeed;
 
   elements.slotReels.innerHTML = Array.from({ length: 15 }, (_, index) => {
     const label = symbols[Math.abs(Math.floor(seed + index * 3 + index * index)) % symbols.length];
