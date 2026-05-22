@@ -87,6 +87,7 @@ const state = {
   slotPots: { freeThrow: 0, heatCheck: 0, championship: 0 },
   slotLastPotEvents: [],
   slotBonusTimeout: null,
+  slotBonusPickSession: null,
   slotCredits: 0,
   slotLastWin: 0,
   slotTotalWon: 0,
@@ -130,11 +131,13 @@ const elements = {
   bjHandType: $("#bjHandType"),
   bjPlayer: $("#bjPlayer"),
   bjDealer: $("#bjDealer"),
+  bjDealButton: $("#bjDealButton"),
   videoPokerCards: $("#videoPokerCards"),
   videoPokerAdvice: $("#videoPokerAdvice"),
   videoPokerHandGraphic: $("#videoPokerHandGraphic"),
   videoPokerHoldGraphic: $("#videoPokerHoldGraphic"),
   videoPokerMachineMessage: $("#videoPokerMachineMessage"),
+  videoPokerDealButton: $("#videoPokerDealButton"),
   crapsAdvice: $("#crapsAdvice"),
   crapsTableGraphic: $("#crapsTableGraphic"),
   crapsPointMarker: $("#crapsPointMarker"),
@@ -142,10 +145,12 @@ const elements = {
   crapsPoint: $("#crapsPoint"),
   crapsBankroll: $("#crapsBankroll"),
   crapsUnit: $("#crapsUnit"),
+  crapsRollButton: $("#crapsRollButton"),
   threeCardCards: $("#threeCardCards"),
   threeCardAdvice: $("#threeCardAdvice"),
   threeCardHandGraphic: $("#threeCardHandGraphic"),
   threeCardActionGraphic: $("#threeCardActionGraphic"),
+  threeCardDealButton: $("#threeCardDealButton"),
   slotsAdvice: $("#slotsAdvice"),
   slotReels: $("#slotReels"),
   slotSpinButton: $("#slotSpinButton"),
@@ -584,13 +589,7 @@ function setupBlackjack() {
   elements.bjDealer.innerHTML = dealerCards.map((card) => `<option value="${card}">${card}</option>`).join("");
 
   const refreshPlayerValues = () => {
-    const type = elements.bjHandType.value;
-    const values =
-      type === "pair"
-        ? ["2", "3", "4", "5", "6", "7", "8", "9", "10", "A"]
-        : type === "soft"
-          ? ["13", "14", "15", "16", "17", "18", "19", "20", "21"]
-          : ["5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"];
+    const values = blackjackPlayerValueOptions(elements.bjHandType.value);
     elements.bjPlayer.innerHTML = values.map((value) => `<option value="${value}">${value}</option>`).join("");
     updateBlackjackAdvice();
   };
@@ -607,7 +606,26 @@ function setupBlackjack() {
     playGameSound("blackjack", "card");
     updateBlackjackAdvice();
   });
+  elements.bjDealButton.addEventListener("click", () => dealBlackjackScenario());
   refreshPlayerValues();
+}
+
+function blackjackPlayerValueOptions(type) {
+  if (type === "pair") return ["2", "3", "4", "5", "6", "7", "8", "9", "10", "A"];
+  if (type === "soft") return ["13", "14", "15", "16", "17", "18", "19", "20", "21"];
+  return ["5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"];
+}
+
+function dealBlackjackScenario() {
+  const type = randomItem(["hard", "soft", "pair"]);
+  elements.bjHandType.value = type;
+  elements.bjPlayer.innerHTML = blackjackPlayerValueOptions(type)
+    .map((value) => `<option value="${value}">${value}</option>`)
+    .join("");
+  elements.bjPlayer.value = randomItem(blackjackPlayerValueOptions(type));
+  elements.bjDealer.value = randomItem(["2", "3", "4", "5", "6", "7", "8", "9", "10", "A"]);
+  playGameSound("blackjack", "card");
+  updateBlackjackAdvice();
 }
 
 function dealerValue(card) {
@@ -662,6 +680,32 @@ function rankFromPip(value) {
   return value === 10 ? "10" : String(value);
 }
 
+function randomItem(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function shuffledDeck() {
+  const deck = SUITS.flatMap((suit) => RANKS.map((rank) => ({ rank, suit, value: RANK_VALUE[rank] })));
+  for (let index = deck.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [deck[index], deck[swapIndex]] = [deck[swapIndex], deck[index]];
+  }
+  return deck;
+}
+
+function randomCards(count) {
+  return shuffledDeck().slice(0, count);
+}
+
+function setCardPickerCards(container, prefix, cards) {
+  cards.forEach((card, index) => {
+    const rankSelect = container.querySelector(`[data-card-rank="${prefix}-${index}"]`);
+    const suitSelect = container.querySelector(`[data-card-suit="${prefix}-${index}"]`);
+    if (rankSelect) rankSelect.value = card.rank;
+    if (suitSelect) suitSelect.value = card.suit;
+  });
+}
+
 function setupCardPickers() {
   renderCardPicker(elements.videoPokerCards, 5, "vp", [
     ["A", "♠"],
@@ -684,6 +728,8 @@ function setupCardPickers() {
     playGameSound("threeCard", "card");
     updateThreeCardAdvice();
   });
+  elements.videoPokerDealButton.addEventListener("click", () => dealVideoPokerHand());
+  elements.threeCardDealButton.addEventListener("click", () => dealThreeCardHand());
   updateVideoPokerAdvice();
   updateThreeCardAdvice();
 }
@@ -726,6 +772,12 @@ function updateVideoPokerAdvice() {
   const result = Core.videoPokerHold(cards);
   renderVideoPokerScreen(cards, result);
   elements.videoPokerAdvice.innerHTML = `<strong>${result.title}</strong><br>${result.detail}`;
+}
+
+function dealVideoPokerHand() {
+  setCardPickerCards(elements.videoPokerCards, "vp", randomCards(5));
+  playGameSound("videoPoker", "card");
+  updateVideoPokerAdvice();
 }
 
 function renderVideoPokerScreen(cards, result) {
@@ -793,16 +845,60 @@ function setupCraps() {
       updateCrapsAdvice();
     }),
   );
+  elements.crapsRollButton.addEventListener("click", () => rollCrapsScenario());
   updateCrapsAdvice();
 }
 
-function updateCrapsAdvice() {
+function updateCrapsAdvice(rollNote = "") {
   const plan = Core.crapsPlan(elements.crapsPoint.value, elements.crapsBankroll.value, elements.crapsUnit.value);
-  elements.crapsAdvice.innerHTML = `<strong>${plan.maxUnits} base units available.</strong><br>${plan.detail}<br>Suggested stop-loss: ${plan.stopLossUnits} units.`;
+  elements.crapsAdvice.innerHTML = `<strong>${plan.maxUnits} base units available.</strong><br>${rollNote ? `${rollNote}<br>` : ""}${plan.detail}<br>Suggested stop-loss: ${plan.stopLossUnits} units.`;
   elements.crapsPointMarker.textContent = elements.crapsPoint.value === "none" ? "Off" : elements.crapsPoint.value;
   elements.crapsPointMarker.classList.toggle("is-on", elements.crapsPoint.value !== "none");
   elements.crapsTableGraphic.dataset.point = elements.crapsPoint.value;
   elements.crapsActionChip.querySelector("strong").textContent = plan.maxUnits;
+}
+
+function rollCrapsScenario() {
+  const first = Math.ceil(Math.random() * 6);
+  const second = Math.ceil(Math.random() * 6);
+  const total = first + second;
+  const previousPoint = elements.crapsPoint.value;
+  let nextPoint = previousPoint;
+  let rollNote = "";
+
+  if (previousPoint === "none") {
+    if (["4", "5", "6", "8", "9", "10"].includes(String(total))) {
+      nextPoint = String(total);
+      rollNote = `Roll ${first} + ${second} = ${total}. Point is now ${total}.`;
+    } else if ([7, 11].includes(total)) {
+      rollNote = `Roll ${first} + ${second} = ${total}. Pass line wins on the come-out.`;
+    } else if ([2, 3, 12].includes(total)) {
+      rollNote = `Roll ${first} + ${second} = ${total}. Pass line loses on the come-out.`;
+    }
+  } else if (total === Number(previousPoint)) {
+    nextPoint = "none";
+    rollNote = `Roll ${first} + ${second} = ${total}. Point made, puck goes off.`;
+  } else if (total === 7) {
+    nextPoint = "none";
+    rollNote = `Roll ${first} + ${second} = 7. Seven-out, puck goes off.`;
+  } else {
+    rollNote = `Roll ${first} + ${second} = ${total}. Point remains ${previousPoint}.`;
+  }
+
+  elements.crapsPoint.value = nextPoint;
+  renderCrapsDice(first, second);
+  playGameSound("craps", "dice");
+  updateCrapsAdvice(rollNote);
+}
+
+function renderCrapsDice(first, second) {
+  const dicePair = elements.crapsTableGraphic.querySelector(".dice-pair");
+  if (!dicePair) return;
+  dicePair.innerHTML = `<span class="die ${dieClass(first)}"></span><span class="die ${dieClass(second)}"></span>`;
+}
+
+function dieClass(value) {
+  return ["", "die-one", "die-two", "die-three", "die-four", "die-five", "die-six"][value] || "die-one";
 }
 
 function updateThreeCardAdvice() {
@@ -821,6 +917,12 @@ function updateThreeCardAdvice() {
   elements.threeCardActionGraphic.classList.toggle("is-fold", result.action === "Fold");
 }
 
+function dealThreeCardHand() {
+  setCardPickerCards(elements.threeCardCards, "tc", randomCards(3));
+  playGameSound("threeCard", "card");
+  updateThreeCardAdvice();
+}
+
 function setupSlots() {
   loadSlotPots();
   loadSlotSession();
@@ -836,6 +938,12 @@ function setupSlots() {
   elements.slotTestCollectButton.addEventListener("click", () => startSlotSpin({ forceCollect: true }));
   elements.slotReels.addEventListener("animationend", handleSlotAnimationEnd);
   elements.slotBonusScreen.addEventListener("click", (event) => {
+    const pickButton = event.target.closest("[data-slot-bonus-pick]");
+    if (pickButton) {
+      revealSlotBonusPick(Number(pickButton.dataset.slotBonusPick));
+      return;
+    }
+
     if (!event.target.closest("[data-slot-bonus-close]")) return;
     hideSlotBonusScreen();
   });
@@ -938,7 +1046,6 @@ function finishSlotSpin() {
     : buildSlotReelSymbols(currentSlotPlan());
   settleSlotWager();
   advanceSlotPots(state.slotVisibleSymbols);
-  settleSlotBonusWins();
   elements.slotReels.classList.remove("is-spinning");
   elements.slotReels.classList.add("is-settling");
   window.clearTimeout(state.slotSettleFallback);
@@ -1331,7 +1438,8 @@ function showSlotBonusScreen(triggeredEvents) {
   const featuredEvent = triggeredEvents[0];
   const bonus = featuredEvent.bonus;
   const extraEvents = triggeredEvents.slice(1);
-  const shots = Array.from({ length: 5 }, (_, index) => index < Math.max(1, Math.round(bonus.meter / 20)));
+  const session = createSlotBonusPickSession(triggeredEvents);
+  state.slotBonusPickSession = session;
 
   elements.slotBonusScreen.hidden = false;
   elements.slotBonusScreen.className = `slot-bonus-screen is-open ${bonus.accent}`;
@@ -1344,23 +1452,122 @@ function showSlotBonusScreen(triggeredEvents) {
       <div class="slot-bonus-copy">
         <small>${featuredEvent.label}</small>
         <strong>${bonus.title}</strong>
-        <p>${bonus.subtitle}</p>
+        <p>Pick basketballs to reveal prizes. Find Collect to bank the bonus.</p>
       </div>
       <div class="slot-bonus-scoreboard">
-        <span>${bonus.statLabel}</span>
-        <strong>${bonus.value}</strong>
-        <b>${bonus.award}</b>
+        <span>Found</span>
+        <strong id="slotBonusFound">${formatMoney(0)}</strong>
+        <b id="slotBonusStatus">Pick a ball</b>
       </div>
-      <div class="slot-bonus-ball-row" aria-hidden="true">
-        ${shots.map((isMade) => `<span class="${isMade ? "made" : ""}"></span>`).join("")}
+      <div class="slot-bonus-pick-grid" aria-label="Basketball bonus picks">
+        ${session.picks
+          .map(
+            (pick, index) => `
+              <button class="slot-bonus-pick" type="button" data-slot-bonus-pick="${index}" aria-label="Reveal basketball ${index + 1}">
+                <span class="slot-bonus-ball-face" aria-hidden="true"></span>
+                <strong>${pick.type === "collect" ? "Collect" : formatMoney(pick.value)}</strong>
+              </button>
+            `,
+          )
+          .join("")}
       </div>
       <img src="./assets/slots/${bonus.symbol}" alt="" loading="lazy" />
-      ${extraEvents.length ? `<em>Extra bonus: ${extraEvents.map((event) => event.bonus.title).join(" + ")}</em>` : ""}
+      <em id="slotBonusTotal">Available bonus: ${formatMoney(session.totalAward)}${extraEvents.length ? ` · Extra bonus: ${extraEvents.map((event) => event.bonus.title).join(" + ")}` : ""}</em>
     </div>
   `;
 
   window.clearTimeout(state.slotBonusTimeout);
-  state.slotBonusTimeout = window.setTimeout(hideSlotBonusScreen, 6200);
+  state.slotBonusTimeout = null;
+}
+
+function createSlotBonusPickSession(triggeredEvents) {
+  const totalAward = roundMoney(
+    triggeredEvents.reduce((total, event) => total + currentSlotBet() * (event.bonus.multiplier || 0), 0),
+  );
+  const awards = splitSlotBonusAward(totalAward);
+  const picks = awards.map((value) => ({ type: "award", value, revealed: false }));
+  picks.push({ type: "collect", value: totalAward, revealed: false });
+  while (picks.length < 9) picks.push({ type: "award", value: roundMoney(currentSlotBet()), revealed: false });
+
+  return {
+    totalAward,
+    foundAward: 0,
+    collected: false,
+    preview: new URLSearchParams(window.location.search).get("slotBonus") === "preview",
+    picks: shuffleSlotBonusPicks(picks),
+  };
+}
+
+function splitSlotBonusAward(totalAward) {
+  if (totalAward <= 0) return [0, 0, 0, 0];
+  const weights = [0.12, 0.18, 0.24, 0.46];
+  const awards = weights.map((weight) => roundMoney(totalAward * weight));
+  const difference = roundMoney(totalAward - awards.reduce((sum, value) => roundMoney(sum + value), 0));
+  awards[awards.length - 1] = roundMoney(awards[awards.length - 1] + difference);
+  return awards;
+}
+
+function shuffleSlotBonusPicks(picks) {
+  const shuffled = [...picks];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+}
+
+function revealSlotBonusPick(index) {
+  const session = state.slotBonusPickSession;
+  if (!session || session.collected) return;
+  const pick = session.picks[index];
+  if (!pick || pick.revealed) return;
+
+  pick.revealed = true;
+  const button = elements.slotBonusScreen.querySelector(`[data-slot-bonus-pick="${index}"]`);
+  if (button) {
+    button.classList.add("is-revealed", pick.type === "collect" ? "is-collect" : "is-award");
+    button.disabled = true;
+  }
+
+  if (pick.type === "collect") {
+    collectSlotBonusSession();
+    return;
+  }
+
+  session.foundAward = roundMoney(session.foundAward + pick.value);
+  updateSlotBonusPickBoard(`Found ${formatMoney(pick.value)}`);
+  playGameSound("ui", "tap");
+}
+
+function collectSlotBonusSession() {
+  const session = state.slotBonusPickSession;
+  if (!session || session.collected) return;
+  session.collected = true;
+
+  if (!session.preview && session.totalAward > 0) {
+    state.slotLastWin = roundMoney(state.slotLastWin + session.totalAward);
+    state.slotCredits = roundMoney(state.slotCredits + session.totalAward);
+    state.slotTotalWon = roundMoney(state.slotTotalWon + session.totalAward);
+    saveSlotSession();
+  }
+
+  elements.slotWinMeter.textContent = `Win ${formatMoney(state.slotLastWin)}`;
+  elements.slotCreditsMeter.textContent = `Credits ${formatMoney(state.slotCredits)}`;
+  elements.slotBonusMeter.textContent = `Collected ${formatMoney(session.totalAward)}`;
+  elements.slotBonusScreen.querySelectorAll("[data-slot-bonus-pick]").forEach((button) => {
+    button.disabled = true;
+  });
+  updateSlotBonusPickBoard(`Collected ${formatMoney(session.totalAward)}`);
+  playGameSound("slots", "bonus");
+}
+
+function updateSlotBonusPickBoard(status) {
+  const session = state.slotBonusPickSession;
+  if (!session) return;
+  const found = elements.slotBonusScreen.querySelector("#slotBonusFound");
+  const statusLabel = elements.slotBonusScreen.querySelector("#slotBonusStatus");
+  if (found) found.textContent = session.collected ? formatMoney(session.totalAward) : formatMoney(session.foundAward);
+  if (statusLabel) statusLabel.textContent = status;
 }
 
 function maybeShowSlotBonusPreview() {
@@ -1381,10 +1588,12 @@ function maybeShowSlotBonusPreview() {
 
 function hideSlotBonusScreen() {
   if (!elements.slotBonusScreen) return;
+  if (state.slotBonusPickSession && !state.slotBonusPickSession.collected) collectSlotBonusSession();
   window.clearTimeout(state.slotBonusTimeout);
   state.slotBonusTimeout = null;
   elements.slotBonusScreen.classList.remove("is-open");
   elements.slotBonusScreen.hidden = true;
+  state.slotBonusPickSession = null;
   if (window.location.hash === "#slotBonusScreen" || new URLSearchParams(window.location.search).has("slotBonus")) {
     const nextUrl = new URL(window.location.href);
     nextUrl.hash = "";
