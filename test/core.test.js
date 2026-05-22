@@ -124,3 +124,55 @@ test("budget helpers keep calculations deterministic", () => {
   assert.equal(Core.crapsPlan("6", 200, 10).stopLossUnits, 7);
   assert.equal(Core.slotsPlan(100, 1, 94, "medium").expectedLoss.toFixed(2), "6.00");
 });
+
+test("slot pot collection maps visible feature symbols to meter entries", () => {
+  const potConfigs = {
+    freeThrow: { label: "Free Throw Pot", collectors: ["bonus-free"] },
+    heatCheck: { label: "Heat Check Pot", collectors: ["fire-seven", "wild"] },
+    championship: { label: "Championship Pot", collectors: ["ring", "jackpot-hoop"] },
+  };
+
+  assert.deepEqual(
+    Core.slotPotCollections(
+      ["bonus-free", "bonus-free", "fire-seven", "wild", "ring", "ring", "jackpot-hoop"],
+      potConfigs,
+    ),
+    [
+      {
+        key: "freeThrow",
+        label: "Free Throw Pot",
+        increment: 1,
+        collectCount: 2,
+        symbol: "bonus-free",
+        fallback: false,
+      },
+      {
+        key: "heatCheck",
+        label: "Heat Check Pot",
+        increment: 1,
+        collectCount: 2,
+        symbol: "fire-seven",
+        fallback: false,
+      },
+      {
+        key: "championship",
+        label: "Championship Pot",
+        increment: 2,
+        collectCount: 3,
+        symbol: "ring",
+        fallback: false,
+      },
+    ],
+  );
+
+  assert.deepEqual(Core.slotPotCollections(["basketball"], potConfigs, () => 0.7), [
+    {
+      key: "championship",
+      label: "Championship Pot",
+      increment: 1,
+      collectCount: 0,
+      symbol: "basketball",
+      fallback: true,
+    },
+  ]);
+});

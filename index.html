@@ -700,9 +700,14 @@
                         <b><i></i><em class="slot-pot-value">0/4</em></b>
                       </div>
                     </div>
-                    <button class="slot-spin-control" id="slotSpinButton" type="button" aria-label="Spin preview reels">
-                      <span>Spin</span>
-                    </button>
+                    <div class="slot-control-stack">
+                      <button class="slot-spin-control" id="slotSpinButton" type="button" aria-label="Spin preview reels">
+                        <span>Spin</span>
+                      </button>
+                      <button class="slot-test-collect" id="slotTestCollectButton" type="button">
+                        Test Collect
+                      </button>
+                    </div>
                     <div class="slot-bonus-plays" aria-label="Bonus play types">
                       <span>Free Throws</span>
                       <span>Heat Check</span>
@@ -904,6 +909,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js?v=36" defer></script>
+    <script src="app.js?v=37" defer></script>
   </body>
 </html>

@@ -53,9 +53,24 @@ const SLOT_BONUS_PLAYS = {
   },
 };
 const SLOT_POTS = {
-  freeThrow: { target: 6, chance: 0.58, label: "Free Throw Pot", bonusKeys: ["freeThrows", "ringChase"] },
-  heatCheck: { target: 5, chance: 0.36, label: "Heat Check Pot", bonusKeys: ["heatCheck", "freeThrows"] },
-  championship: { target: 4, chance: 0.18, label: "Championship Pot", bonusKeys: ["hoopJackpot", "ringChase"] },
+  freeThrow: {
+    target: 6,
+    label: "Free Throw Pot",
+    collectors: ["bonus-free"],
+    bonusKeys: ["freeThrows", "ringChase"],
+  },
+  heatCheck: {
+    target: 5,
+    label: "Heat Check Pot",
+    collectors: ["fire-seven", "wild"],
+    bonusKeys: ["heatCheck", "freeThrows"],
+  },
+  championship: {
+    target: 4,
+    label: "Championship Pot",
+    collectors: ["ring", "jackpot-hoop"],
+    bonusKeys: ["hoopJackpot", "ringChase"],
+  },
 };
 
 const state = {
@@ -65,6 +80,8 @@ const state = {
   deferredInstallPrompt: null,
   slotSpinSeed: 0,
   slotSpinning: false,
+  slotForceCollectSpin: false,
+  slotVisibleSymbols: [],
   slotSpinFallback: null,
   slotSettleFallback: null,
   slotPots: { freeThrow: 0, heatCheck: 0, championship: 0 },
@@ -132,6 +149,7 @@ const elements = {
   slotsAdvice: $("#slotsAdvice"),
   slotReels: $("#slotReels"),
   slotSpinButton: $("#slotSpinButton"),
+  slotTestCollectButton: $("#slotTestCollectButton"),
   slotRulesOpen: $("#slotRulesOpen"),
   slotRulesClose: $("#slotRulesClose"),
   slotRulesModal: $("#slotRulesModal"),
@@ -809,29 +827,13 @@ function setupSlots() {
   [elements.slotBankroll, elements.slotBet, elements.slotRtp, elements.slotVolatility].forEach((input) =>
     input.addEventListener("input", () => {
       playGameSound("ui", "tap");
+      state.slotVisibleSymbols = [];
       if (input === elements.slotBankroll) resetSlotSessionFromInputs();
       updateSlotsAdvice();
     }),
   );
-  elements.slotSpinButton.addEventListener("click", () => {
-    if (state.slotSpinning) return;
-    if (state.slotCredits < currentSlotBet()) {
-      elements.slotBonusMeter.textContent = "Add credits";
-      resetSlotSessionFromInputs();
-      updateSlotsAdvice();
-      return;
-    }
-    hideSlotBonusScreen();
-    state.slotSpinning = true;
-    playGameSound("slots", "spin");
-    elements.slotSpinButton.disabled = true;
-    elements.slotSpinButton.querySelector("span").textContent = "Spin...";
-    elements.slotReels.classList.remove("is-settling");
-    elements.slotReels.classList.add("is-spinning");
-    window.clearTimeout(state.slotSpinFallback);
-    window.clearTimeout(state.slotSettleFallback);
-    state.slotSpinFallback = window.setTimeout(finishSlotSpin, SLOT_SPIN_DURATION_MS + 250);
-  });
+  elements.slotSpinButton.addEventListener("click", () => startSlotSpin());
+  elements.slotTestCollectButton.addEventListener("click", () => startSlotSpin({ forceCollect: true }));
   elements.slotReels.addEventListener("animationend", handleSlotAnimationEnd);
   elements.slotBonusScreen.addEventListener("click", (event) => {
     if (!event.target.closest("[data-slot-bonus-close]")) return;
@@ -892,6 +894,29 @@ function closeSlotProfile() {
   if (state.slotProfileLastFocus) state.slotProfileLastFocus.focus();
 }
 
+function startSlotSpin({ forceCollect = false } = {}) {
+  if (state.slotSpinning) return;
+  if (state.slotCredits < currentSlotBet()) {
+    elements.slotBonusMeter.textContent = "Add credits";
+    resetSlotSessionFromInputs();
+    updateSlotsAdvice();
+    return;
+  }
+
+  hideSlotBonusScreen();
+  state.slotSpinning = true;
+  state.slotForceCollectSpin = forceCollect;
+  playGameSound("slots", "spin");
+  elements.slotSpinButton.disabled = true;
+  elements.slotTestCollectButton.disabled = true;
+  elements.slotSpinButton.querySelector("span").textContent = forceCollect ? "Collect..." : "Spin...";
+  elements.slotReels.classList.remove("is-settling");
+  elements.slotReels.classList.add("is-spinning");
+  window.clearTimeout(state.slotSpinFallback);
+  window.clearTimeout(state.slotSettleFallback);
+  state.slotSpinFallback = window.setTimeout(finishSlotSpin, SLOT_SPIN_DURATION_MS + 250);
+}
+
 function handleSlotAnimationEnd(event) {
   if (event.target !== elements.slotReels) return;
   if (elements.slotReels.classList.contains("is-spinning")) {
@@ -908,8 +933,11 @@ function finishSlotSpin() {
   window.clearTimeout(state.slotSpinFallback);
   state.slotSpinFallback = null;
   state.slotSpinSeed = Math.floor(Math.random() * 100000);
+  state.slotVisibleSymbols = state.slotForceCollectSpin
+    ? buildForcedCollectSlotSymbols()
+    : buildSlotReelSymbols(currentSlotPlan());
   settleSlotWager();
-  advanceSlotPots();
+  advanceSlotPots(state.slotVisibleSymbols);
   settleSlotBonusWins();
   elements.slotReels.classList.remove("is-spinning");
   elements.slotReels.classList.add("is-settling");
@@ -928,12 +956,18 @@ function finishSlotSettle() {
   state.slotSettleFallback = null;
   elements.slotReels.classList.remove("is-settling");
   elements.slotSpinButton.disabled = false;
+  elements.slotTestCollectButton.disabled = false;
   elements.slotSpinButton.querySelector("span").textContent = "Spin";
+  state.slotForceCollectSpin = false;
   state.slotSpinning = false;
 }
 
 function currentSlotBankroll() {
   return Math.max(0, Number(elements.slotBankroll.value) || 0);
+}
+
+function currentSlotPlan() {
+  return Core.slotsPlan(elements.slotBankroll.value, elements.slotBet.value, elements.slotRtp.value, elements.slotVolatility.value);
 }
 
 function currentSlotBet() {
@@ -1013,23 +1047,22 @@ function clampPotValue(value, target) {
   return Math.max(0, Math.min(target, Math.floor(numeric)));
 }
 
-function advanceSlotPots() {
+function advanceSlotPots(reelSymbols = getCurrentSlotSymbols()) {
   const events = [];
-  Object.entries(SLOT_POTS).forEach(([key, pot]) => {
-    const roll = Math.random();
-    if (roll > pot.chance) return;
+  Core.slotPotCollections(reelSymbols, SLOT_POTS).forEach((collection) => {
+    const pot = SLOT_POTS[collection.key];
+    if (!pot) return;
 
-    const increment = roll < pot.chance * 0.14 ? 2 : 1;
-    const nextValue = state.slotPots[key] + increment;
+    const nextValue = state.slotPots[collection.key] + collection.increment;
     if (nextValue >= pot.target) {
       const bonus = rollSlotBonus(pot);
-      state.slotPots[key] = 0;
-      events.push({ type: "trigger", key, label: pot.label, bonus });
+      state.slotPots[collection.key] = 0;
+      events.push({ type: "trigger", ...collection, label: pot.label, bonus });
       return;
     }
 
-    state.slotPots[key] = nextValue;
-    events.push({ type: "advance", key, label: pot.label, value: nextValue, increment });
+    state.slotPots[collection.key] = nextValue;
+    events.push({ type: "advance", ...collection, label: pot.label, value: nextValue });
   });
 
   state.slotLastPotEvents = events;
@@ -1134,9 +1167,9 @@ function rollSlotBonus(pot) {
 }
 
 function updateSlotsAdvice(playResultSound = false) {
-  const plan = Core.slotsPlan(elements.slotBankroll.value, elements.slotBet.value, elements.slotRtp.value, elements.slotVolatility.value);
+  const plan = currentSlotPlan();
   elements.slotsAdvice.innerHTML = `<strong>${plan.spins} spins before the bankroll is gone.</strong><br>At ${Number(elements.slotRtp.value).toFixed(1)}% RTP, the long-run expected loss over that many spins is about $${plan.expectedLoss.toFixed(2)}. For ${elements.slotVolatility.value} volatility, consider a stop-loss near $${plan.stopLoss.toFixed(0)} and a win goal near $${plan.winGoal.toFixed(0)}.`;
-  renderSlotVisual(plan);
+  renderSlotVisual(plan, playResultSound);
 }
 
 function renderGraphicCards(container, cards) {
@@ -1161,7 +1194,25 @@ function renderVideoPokerCard(card, isHeld) {
   `;
 }
 
-function renderSlotVisual(plan) {
+function renderSlotVisual(plan, playResultSound = false) {
+  const reelSymbols = state.slotVisibleSymbols.length ? state.slotVisibleSymbols : buildSlotReelSymbols();
+  state.slotVisibleSymbols = reelSymbols;
+
+  elements.slotReels.innerHTML = reelSymbols.map((label, index) => renderSlotSymbol(label, index)).join("");
+  elements.slotSpinMeter.textContent = `${plan.spins} spins`;
+  elements.slotCreditsMeter.textContent = `Credits ${formatMoney(state.slotCredits)}`;
+  elements.slotWinMeter.textContent = `Win ${formatMoney(state.slotLastWin)}`;
+  elements.slotLossMeter.textContent = `$${plan.expectedLoss.toFixed(2)} expected loss`;
+  elements.slotStopMeter.textContent = `$${plan.stopLoss.toFixed(0)} stop`;
+  elements.slotBetBadge.textContent = `$${Number(elements.slotBet.value || 0).toFixed(2)}`;
+  updateSlotBonusMeters(playResultSound);
+  elements.slotGrandMeter.textContent = `$${Math.max(5000, plan.winGoal * 250).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  elements.slotMajorMeter.textContent = `$${Math.max(1000, plan.winGoal * 50).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  elements.slotMinorMeter.textContent = `$${Math.max(100, plan.stopLoss * 4).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  elements.slotMiniMeter.textContent = `$${Math.max(25, plan.stopLoss).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+}
+
+function buildSlotReelSymbols() {
   const volatility = elements.slotVolatility.value;
   const symbolSets = {
     low: ["basketball", "basketball", "whistle", "sneaker", "arena", "jersey", "scoreboard", "ring", "bonus-free"],
@@ -1181,18 +1232,43 @@ function renderSlotVisual(plan) {
     return index === 12 && !symbols.includes("jackpot-hoop") ? "bonus-free" : label;
   });
 
-  elements.slotReels.innerHTML = reelSymbols.map((label, index) => renderSlotSymbol(label, index)).join("");
-  elements.slotSpinMeter.textContent = `${plan.spins} spins`;
-  elements.slotCreditsMeter.textContent = `Credits ${formatMoney(state.slotCredits)}`;
-  elements.slotWinMeter.textContent = `Win ${formatMoney(state.slotLastWin)}`;
-  elements.slotLossMeter.textContent = `$${plan.expectedLoss.toFixed(2)} expected loss`;
-  elements.slotStopMeter.textContent = `$${plan.stopLoss.toFixed(0)} stop`;
-  elements.slotBetBadge.textContent = `$${Number(elements.slotBet.value || 0).toFixed(2)}`;
-  updateSlotBonusMeters(playResultSound);
-  elements.slotGrandMeter.textContent = `$${Math.max(5000, plan.winGoal * 250).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  elements.slotMajorMeter.textContent = `$${Math.max(1000, plan.winGoal * 50).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  elements.slotMinorMeter.textContent = `$${Math.max(100, plan.stopLoss * 4).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  elements.slotMiniMeter.textContent = `$${Math.max(25, plan.stopLoss).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  return reelSymbols;
+}
+
+function buildForcedCollectSlotSymbols() {
+  return [
+    "bonus-free",
+    "basketball",
+    "fire-seven",
+    "ring",
+    "basketball",
+    "scoreboard",
+    "wild",
+    "basketball",
+    "jackpot-hoop",
+    "fire-seven",
+    "bonus-free",
+    "sneaker",
+    "bonus-free",
+    "ring",
+    "scoreboard",
+    "basketball",
+    "wild",
+    "trophy",
+    "ring",
+    "jackpot-hoop",
+    "jersey",
+    "basketball",
+    "fire-seven",
+    "bonus-free",
+    "basketball",
+  ];
+}
+
+function getCurrentSlotSymbols() {
+  return state.slotVisibleSymbols.length
+    ? state.slotVisibleSymbols
+    : $$("[data-slot-symbol]").map((element) => element.dataset.slotSymbol);
 }
 
 function updateSlotBonusMeters(playResultSound = false) {
@@ -1223,9 +1299,7 @@ function updateSlotBonusMeters(playResultSound = false) {
     showSlotBonusScreen(triggered);
     elements.slotBonusMeter.textContent = `${triggered.map((event) => event.bonus.title).join(" + ")} bonus triggered`;
   } else if (advanced.length) {
-    elements.slotBonusMeter.textContent = advanced
-      .map((event) => `${event.label.replace(" Pot", "")} +${event.increment}`)
-      .join(" · ");
+    elements.slotBonusMeter.textContent = advanced.map(formatSlotPotEvent).join(" · ");
   } else if (state.slotLastOutcome) {
     elements.slotBonusMeter.textContent = state.slotLastOutcome;
   } else {
@@ -1233,9 +1307,23 @@ function updateSlotBonusMeters(playResultSound = false) {
   }
 
   if (playResultSound) {
+    animateSlotPotCollections([...advanced, ...triggered]);
+    if (triggered.length) window.setTimeout(refreshSlotPotMeters, 1300);
     window.setTimeout(() => playGameSound("slots", triggered.length ? "bonus" : "stop"), 360);
     state.slotLastPotEvents = [];
   }
+}
+
+function formatSlotPotEvent(event) {
+  const potName = event.label.replace(" Pot", "");
+  if (event.fallback) return `Loose ball to ${potName} +${event.increment}`;
+  return `${potName} +${event.increment}`;
+}
+
+function refreshSlotPotMeters() {
+  setSlotPot(elements.slotFreeThrowPot, state.slotPots.freeThrow, SLOT_POTS.freeThrow.target);
+  setSlotPot(elements.slotHeatCheckPot, state.slotPots.heatCheck, SLOT_POTS.heatCheck.target);
+  setSlotPot(elements.slotChampionshipPot, state.slotPots.championship, SLOT_POTS.championship.target);
 }
 
 function showSlotBonusScreen(triggeredEvents) {
@@ -1315,6 +1403,62 @@ function setSlotPot(element, count, target, triggered = false) {
   element.classList.toggle("is-full", triggered || count >= target);
 }
 
+function animateSlotPotCollections(events) {
+  if (!events.length) return;
+  const potTargets = {
+    freeThrow: elements.slotFreeThrowPot,
+    heatCheck: elements.slotHeatCheckPot,
+    championship: elements.slotChampionshipPot,
+  };
+  const fallbackSource = elements.slotReels.getBoundingClientRect();
+
+  events.forEach((event, index) => {
+    const target = potTargets[event.key];
+    if (!target) return;
+
+    const source = document.querySelector(`[data-slot-symbol="${event.symbol}"]`);
+    const startRect = source?.getBoundingClientRect() || fallbackSource;
+    const endRect = target.getBoundingClientRect();
+    const startX = startRect.left + startRect.width / 2;
+    const startY = startRect.top + startRect.height / 2;
+    const endX = endRect.left + endRect.width / 2;
+    const endY = endRect.top + endRect.height / 2;
+    const flyer = document.createElement("img");
+
+    flyer.className = "slot-collect-flyer";
+    flyer.src = `./assets/slots/${slotSymbolFileName(event.symbol)}`;
+    flyer.alt = "";
+    flyer.style.left = `${startX}px`;
+    flyer.style.top = `${startY}px`;
+    flyer.style.setProperty("--fly-x", `${endX - startX}px`);
+    flyer.style.setProperty("--fly-y", `${endY - startY}px`);
+    flyer.style.animationDelay = `${index * 90}ms`;
+    document.body.append(flyer);
+
+    target.classList.add("is-collecting");
+    window.setTimeout(() => target.classList.remove("is-collecting"), 760 + index * 90);
+    window.setTimeout(() => flyer.remove(), 980 + index * 90);
+  });
+}
+
+function slotSymbolFileName(symbol) {
+  const files = {
+    arena: "arena.png",
+    basketball: "basketball.png",
+    "bonus-free": "bonus-free.png",
+    "fire-seven": "fire-seven.png",
+    "jackpot-hoop": "jackpot-hoop.png",
+    jersey: "jersey.png",
+    ring: "ring.png",
+    scoreboard: "scoreboard.png",
+    sneaker: "sneaker.png",
+    trophy: "trophy.png",
+    whistle: "whistle.png",
+    wild: "wild.png",
+  };
+  return files[symbol] || files.basketball;
+}
+
 function renderSlotSymbol(symbol, index) {
   const labels = {
     arena: ["Arena", "arena", "arena.png"],
@@ -1335,7 +1479,7 @@ function renderSlotSymbol(symbol, index) {
   const reelIndex = index % 5;
   const rowIndex = Math.floor(index / 5);
   return `
-    <span class="slot-reel ${className} ${featured ? "featured" : ""}" style="--reel-index: ${reelIndex}; --row-index: ${rowIndex};">
+    <span class="slot-reel ${className} ${featured ? "featured" : ""}" data-slot-symbol="${symbol}" style="--reel-index: ${reelIndex}; --row-index: ${rowIndex};">
       <img class="slot-symbol-art" src="./assets/slots/${fileName}" alt="" loading="lazy" />
       <strong>${label}</strong>
     </span>

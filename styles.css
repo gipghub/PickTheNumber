@@ -346,6 +346,59 @@
     0 0 18px rgba(248, 201, 87, 0.55);
 }
 
+.slot-pot.is-collecting {
+  animation: slotPotCollectPulse 760ms ease both;
+}
+
+.slot-collect-flyer {
+  position: fixed;
+  z-index: 100;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter:
+    drop-shadow(0 0 10px rgba(248, 201, 87, 0.78))
+    drop-shadow(0 0 18px rgba(114, 226, 255, 0.42));
+  transform: translate(-50%, -50%) scale(0.86);
+  animation: slotCollectFly 820ms cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes slotPotCollectPulse {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  42% {
+    border-color: #fff4ae;
+    box-shadow:
+      inset 0 0 34px rgba(248, 201, 87, 0.34),
+      0 0 26px rgba(114, 226, 255, 0.62);
+    transform: translateY(-3px) scale(1.02);
+  }
+}
+
+@keyframes slotCollectFly {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.58) rotate(0deg);
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  78% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--fly-x), var(--fly-y)) scale(0.38) rotate(680deg);
+  }
+}
+
 .slot-bonus-plays {
   position: relative;
   z-index: 4;
@@ -618,9 +671,20 @@
   background: #07111f;
 }
 
-.slot-machine.basketball-slot-machine .slot-spin-control {
+.slot-machine.basketball-slot-machine .slot-control-stack {
+  position: absolute;
   right: 28px;
   top: 372px;
+  z-index: 7;
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+}
+
+.slot-machine.basketball-slot-machine .slot-spin-control {
+  position: relative;
+  right: auto;
+  top: auto;
   width: 98px;
   height: 98px;
   border: 10px solid #f8c957;
@@ -632,6 +696,35 @@
   transition:
     transform 160ms ease,
     box-shadow 160ms ease;
+}
+
+.slot-machine.basketball-slot-machine .slot-test-collect {
+  width: 108px;
+  min-height: 34px;
+  border: 1px solid rgba(114, 226, 255, 0.58);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(114, 226, 255, 0.24), rgba(31, 111, 235, 0.18)),
+    rgba(2, 8, 23, 0.9);
+  color: #e9faff;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    0 0 14px rgba(114, 226, 255, 0.2);
+}
+
+.slot-machine.basketball-slot-machine .slot-test-collect:hover,
+.slot-machine.basketball-slot-machine .slot-test-collect:focus-visible {
+  border-color: rgba(248, 201, 87, 0.72);
+  color: #fff4ae;
+  outline: none;
+}
+
+.slot-machine.basketball-slot-machine .slot-test-collect:disabled {
+  cursor: wait;
+  opacity: 0.68;
 }
 
 .slot-machine.basketball-slot-machine .slot-spin-control:hover {
@@ -1367,18 +1460,29 @@ body.slot-profile-opened {
     font-size: 0.58rem;
   }
 
-  .slot-machine.basketball-slot-machine .slot-spin-control {
+  .slot-machine.basketball-slot-machine .slot-control-stack {
     grid-area: spin;
     position: relative;
     right: auto;
     top: auto;
     align-self: stretch;
     justify-self: end;
+    gap: 4px;
+  }
+
+  .slot-machine.basketball-slot-machine .slot-spin-control {
     width: 54px;
     height: 54px;
     margin: 0;
     border-width: 5px;
     font-size: 0.58rem;
+  }
+
+  .slot-machine.basketball-slot-machine .slot-test-collect {
+    width: 60px;
+    min-height: 28px;
+    padding: 3px 4px;
+    font-size: 0.48rem;
   }
 
   .slot-machine.basketball-slot-machine .slot-reel strong {

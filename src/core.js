@@ -453,6 +453,42 @@
     };
   }
 
+  function slotPotCollections(reelSymbols, potConfigs, rng = Math.random) {
+    const symbols = Array.isArray(reelSymbols) ? reelSymbols : [];
+    const pots = Object.entries(potConfigs || {});
+    const events = pots
+      .map(([key, pot]) => {
+        const collectors = Array.isArray(pot.collectors) ? pot.collectors : [];
+        const collectCount = symbols.filter((symbol) => collectors.includes(symbol)).length;
+        const symbol = collectors.find((collector) => symbols.includes(collector)) || "basketball";
+        const increment = collectCount >= 3 ? 2 : collectCount > 0 ? 1 : 0;
+        return {
+          key,
+          label: pot.label || key,
+          increment,
+          collectCount,
+          symbol,
+          fallback: false,
+        };
+      })
+      .filter((event) => event.increment > 0);
+
+    if (events.length || !pots.length) return events;
+
+    const fallbackIndex = Math.floor(clamp(rng(), 0, 0.999999) * pots.length);
+    const [key, pot] = pots[fallbackIndex];
+    return [
+      {
+        key,
+        label: pot.label || key,
+        increment: 1,
+        collectCount: 0,
+        symbol: "basketball",
+        fallback: true,
+      },
+    ];
+  }
+
   function bankrollPlan(monthlyBudget, sessionsPerMonth, lotterySpend) {
     const sessions = Math.max(1, Number(sessionsPerMonth) || 1);
     const perSession = (Number(monthlyBudget) || 0) / sessions;
@@ -482,6 +518,7 @@
     parseCsv,
     parseDate,
     scoreTicketShape,
+    slotPotCollections,
     slotsPlan,
     threeCardDecision,
     ticketShapeIsUseful,
