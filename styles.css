@@ -1539,18 +1539,19 @@ input {
   position: relative;
   display: grid;
   grid-template-columns: minmax(190px, 0.95fr) minmax(210px, 0.8fr) minmax(210px, 0.95fr);
-  grid-template-rows: 92px 1fr 124px;
-  min-height: 520px;
+  grid-template-rows: 116px 1fr 124px;
+  min-height: 570px;
   overflow: hidden;
-  border: 10px solid #103f25;
-  border-radius: 10px;
+  border: 14px solid #765226;
+  border-radius: 12px 12px 78px 78px;
   background:
-    radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.08), transparent 25%),
-    linear-gradient(110deg, rgba(255, 255, 255, 0.04), transparent 34% 66%, rgba(0, 0, 0, 0.18)),
-    repeating-linear-gradient(18deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 8px),
-    #145f36;
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.2), transparent 32%),
+    radial-gradient(ellipse at 50% 102%, rgba(0, 0, 0, 0.2), transparent 44%),
+    linear-gradient(105deg, rgba(255, 255, 255, 0.05), transparent 34% 66%, rgba(0, 0, 0, 0.18)),
+    repeating-linear-gradient(11deg, rgba(255, 255, 255, 0.024) 0 1px, transparent 1px 6px),
+    #0f8d7c;
   box-shadow:
-    inset 0 0 90px rgba(0, 0, 0, 0.48),
+    inset 0 0 130px rgba(0, 0, 0, 0.42),
     inset 0 0 0 2px rgba(255, 255, 255, 0.05);
 }
 
@@ -1560,18 +1561,116 @@ input {
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(circle at 18% 28%, rgba(255, 255, 255, 0.08), transparent 9%),
-    radial-gradient(circle at 74% 78%, rgba(255, 220, 68, 0.08), transparent 13%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.16), transparent 18% 82%, rgba(0, 0, 0, 0.18));
+    radial-gradient(circle at 18% 28%, rgba(255, 255, 255, 0.1), transparent 9%),
+    radial-gradient(circle at 74% 78%, rgba(255, 220, 68, 0.09), transparent 13%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.14), transparent 18% 82%, rgba(0, 0, 0, 0.16));
+}
+
+.three-card-felt::after {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 20px;
+  height: 46%;
+  border: 2px solid rgba(255, 231, 145, 0.58);
+  border-top: 0;
+  border-radius: 0 0 48% 48%;
+  pointer-events: none;
+}
+
+.tc-dealer-rail {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  z-index: 4;
+  width: min(560px, 72%);
+  height: 76px;
+  transform: translateX(-50%) perspective(500px) rotateX(18deg);
+}
+
+.tc-card-shoe,
+.tc-discard-tray,
+.tc-chip-tray {
+  position: absolute;
+  top: 8px;
+  border-radius: 6px;
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.36);
+}
+
+.tc-card-shoe {
+  left: 0;
+  width: 72px;
+  height: 46px;
+  background:
+    linear-gradient(135deg, transparent 0 14%, rgba(255, 255, 255, 0.12) 15% 22%, transparent 23%),
+    repeating-linear-gradient(45deg, #672335 0 8px, #922d3e 8px 16px);
+  border: 4px solid rgba(20, 16, 12, 0.55);
+}
+
+.tc-discard-tray {
+  left: 92px;
+  width: 86px;
+  height: 44px;
+  border: 4px solid rgba(255, 255, 255, 0.58);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.22)),
+    rgba(202, 216, 206, 0.5);
+}
+
+.tc-chip-tray {
+  right: 0;
+  width: min(338px, calc(100% - 196px));
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  border: 6px solid #8f642e;
+  background:
+    linear-gradient(180deg, rgba(255, 236, 184, 0.3), rgba(92, 52, 17, 0.36)),
+    #b37a35;
+}
+
+.tc-chip-tray i {
+  width: 25px;
+  height: 42px;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.62);
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.5) 0 3px, transparent 3px 8px),
+    var(--chip-color, #c74343);
+  box-shadow:
+    inset 0 0 0 3px rgba(0, 0, 0, 0.16),
+    0 2px 0 rgba(0, 0, 0, 0.32);
+}
+
+.tc-chip-tray .cream {
+  --chip-color: #e9d889;
+}
+
+.tc-chip-tray .red {
+  --chip-color: #c74343;
+}
+
+.tc-chip-tray .green {
+  --chip-color: #2f8c40;
+}
+
+.tc-chip-tray .black {
+  --chip-color: #222832;
+}
+
+.tc-chip-tray .blue {
+  --chip-color: #3859b8;
 }
 
 .tc-table-title {
   grid-column: 1 / -1;
-  align-self: start;
+  align-self: end;
   justify-self: center;
   color: #fff22f;
   font-family: Impact, "Arial Black", sans-serif;
-  font-size: clamp(2.15rem, 6vw, 4.9rem);
+  font-size: clamp(2rem, 5.4vw, 4.35rem);
   line-height: 0.9;
   text-align: center;
   text-transform: uppercase;
@@ -1579,6 +1678,78 @@ input {
   text-shadow:
     3px 4px 0 rgba(0, 0, 0, 0.22),
     0 0 20px rgba(255, 242, 47, 0.18);
+}
+
+.tc-side-stations {
+  position: absolute;
+  inset: 86px 26px 84px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.tc-player-station {
+  position: absolute;
+  width: 174px;
+  min-height: 138px;
+  display: grid;
+  grid-template-columns: repeat(3, 28px) 1fr;
+  grid-template-rows: 36px 34px 34px;
+  gap: 7px;
+  align-items: center;
+  color: rgba(255, 242, 47, 0.84);
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  opacity: 0.82;
+}
+
+.tc-mini-card {
+  width: 28px;
+  height: 22px;
+  border: 3px solid rgba(255, 255, 255, 0.78);
+  border-radius: 4px;
+}
+
+.tc-player-station b {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.tc-player-station i {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(247, 115, 83, 0.86);
+  transform: rotate(45deg);
+}
+
+.tc-player-station i:last-child {
+  border-color: rgba(255, 255, 255, 0.76);
+  transform: rotate(0deg);
+  border-radius: 8px;
+}
+
+.station-left-far {
+  left: 0;
+  top: 42px;
+  transform: rotate(-24deg);
+}
+
+.station-left-near {
+  left: 54px;
+  bottom: 16px;
+  transform: rotate(-18deg);
+}
+
+.station-right-far {
+  right: 0;
+  top: 42px;
+  transform: rotate(24deg);
+}
+
+.station-right-near {
+  right: 54px;
+  bottom: 16px;
+  transform: rotate(18deg);
 }
 
 .tc-rules {
@@ -1616,6 +1787,7 @@ input {
   min-height: 348px;
   display: grid;
   place-items: center;
+  z-index: 2;
 }
 
 .tc-bet-ring {
@@ -1704,6 +1876,7 @@ input {
   width: 100%;
   color: #fff22f;
   text-transform: uppercase;
+  z-index: 2;
 }
 
 .tc-pays h3 {
@@ -1749,7 +1922,7 @@ input {
 .tc-dealer-cards {
   position: absolute;
   left: 50%;
-  bottom: 118px;
+  bottom: 122px;
   z-index: 2;
   min-height: 0;
   transform: translateX(-50%) rotate(-2deg);
@@ -2444,9 +2617,39 @@ input {
     grid-template-rows: auto auto auto auto;
     min-height: 0;
     gap: 10px;
-    padding: 16px;
+    padding: 52px 16px 16px;
     border-width: 7px;
     border-radius: 8px;
+  }
+
+  .tc-dealer-rail {
+    top: 6px;
+    width: calc(100% - 30px);
+    height: 44px;
+  }
+
+  .tc-card-shoe,
+  .tc-discard-tray {
+    display: none;
+  }
+
+  .tc-chip-tray {
+    left: 50%;
+    right: auto;
+    top: 0;
+    width: min(210px, 100%);
+    height: 36px;
+    border-width: 4px;
+    transform: translateX(-50%);
+  }
+
+  .tc-chip-tray i {
+    width: 15px;
+    height: 25px;
+  }
+
+  .tc-side-stations {
+    display: none;
   }
 
   .tc-table-title {
