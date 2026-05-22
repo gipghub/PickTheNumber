@@ -6,8 +6,8 @@
   --paper: #070b0f;
   --surface: #121a22;
   --surface-soft: #18232d;
-  --accent: #18a88c;
-  --accent-strong: #5ce0c4;
+  --accent: #1f6feb;
+  --accent-strong: #72e2ff;
   --gold: #d4972b;
   --red: #c74343;
   --blue: #1c5d99;
@@ -695,7 +695,7 @@ body {
   min-width: 320px;
   color: var(--ink);
   background:
-    radial-gradient(circle at 18% 10%, rgba(24, 168, 140, 0.2), transparent 28%),
+    radial-gradient(circle at 18% 10%, rgba(31, 111, 235, 0.22), transparent 28%),
     radial-gradient(circle at 82% 0%, rgba(212, 151, 43, 0.16), transparent 24%),
     linear-gradient(180deg, #101820 0%, #070b0f 42%, #05070a 100%),
     var(--paper);
@@ -785,10 +785,10 @@ h1 {
 }
 
 .sound-toggle.is-on {
-  border-color: rgba(92, 224, 196, 0.72);
-  background: rgba(24, 168, 140, 0.18);
+  border-color: rgba(114, 226, 255, 0.72);
+  background: rgba(31, 111, 235, 0.2);
   color: var(--accent-strong);
-  box-shadow: 0 0 18px rgba(24, 168, 140, 0.18);
+  box-shadow: 0 0 18px rgba(31, 111, 235, 0.24);
 }
 
 .status-pill {
@@ -925,7 +925,7 @@ input {
 select:focus,
 input:focus {
   border-color: var(--accent);
-  outline: 2px solid rgba(24, 168, 140, 0.28);
+  outline: 2px solid rgba(31, 111, 235, 0.34);
 }
 
 .primary-action,
