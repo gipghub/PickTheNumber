@@ -8,7 +8,7 @@
       content="An entertainment-first PWA for lottery number analysis and casino-game strategy helpers."
     />
     <meta name="theme-color" content="#070b0f" />
-    <title>Pick The Number</title>
+    <title>Spin, Deal &amp; Draw</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icons/icon.svg" />
@@ -19,7 +19,7 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">Installable PWA</p>
-          <h1>Pick The Number</h1>
+          <h1>Spin, Deal &amp; Draw</h1>
         </div>
         <div class="topbar-actions">
           <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false">Sound Off</button>
@@ -373,12 +373,12 @@
                         <span><strong>Cash</strong> $0.00</span>
                       </div>
                     </div>
-                    <div class="machine-buttons" aria-hidden="true">
+                    <div class="machine-buttons">
                       <span>Help</span>
                       <span>More Games</span>
                       <span>See Pays</span>
                       <span>$5</span>
-                      <span>Deal / Draw</span>
+                      <button id="videoPokerMachineDrawButton" type="button">Deal / Draw</button>
                       <span>Cash Out</span>
                     </div>
                   </div>
@@ -386,6 +386,7 @@
                 <div class="card-picker" id="videoPokerCards"></div>
                 <div class="button-row strategy-action-row">
                   <button class="secondary-action" id="videoPokerDealButton" type="button">Deal Hand</button>
+                  <button class="secondary-action" id="videoPokerDrawButton" type="button">Draw</button>
                 </div>
                 <div class="advice-box" id="videoPokerAdvice"></div>
               </div>
@@ -494,13 +495,13 @@
                         <span class="prop-wide" data-craps-bet="anyCraps">Any Craps · 8 to 1</span>
                       </div>
                     </aside>
-                    <div class="craps-chip-column" aria-hidden="true">
-                      <span>E</span>
-                      <span>C</span>
-                      <span>E</span>
-                      <span>C</span>
-                      <span>E</span>
-                      <span>C</span>
+                    <div class="craps-chip-column" aria-label="One-roll quick bets">
+                      <span data-craps-bet="yo">E</span>
+                      <span data-craps-bet="anyCraps">C</span>
+                      <span data-craps-bet="yo">E</span>
+                      <span data-craps-bet="anyCraps">C</span>
+                      <span data-craps-bet="yo">E</span>
+                      <span data-craps-bet="anyCraps">C</span>
                     </div>
                     <div class="craps-table-title">
                       <strong>How to play craps</strong>
@@ -929,6 +930,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js?v=44" defer></script>
+    <script src="app.js?v=45" defer></script>
   </body>
 </html>

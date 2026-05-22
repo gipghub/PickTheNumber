@@ -165,6 +165,8 @@ const elements = {
   videoPokerHoldGraphic: $("#videoPokerHoldGraphic"),
   videoPokerMachineMessage: $("#videoPokerMachineMessage"),
   videoPokerDealButton: $("#videoPokerDealButton"),
+  videoPokerDrawButton: $("#videoPokerDrawButton"),
+  videoPokerMachineDrawButton: $("#videoPokerMachineDrawButton"),
   crapsAdvice: $("#crapsAdvice"),
   crapsTableGraphic: $("#crapsTableGraphic"),
   crapsPointMarker: $("#crapsPointMarker"),
@@ -779,6 +781,8 @@ function setupCardPickers() {
     updateThreeCardAdvice();
   });
   elements.videoPokerDealButton.addEventListener("click", () => dealVideoPokerHand());
+  elements.videoPokerDrawButton.addEventListener("click", () => drawVideoPokerHand());
+  elements.videoPokerMachineDrawButton.addEventListener("click", () => drawVideoPokerHand());
   elements.threeCardDealButton.addEventListener("click", () => dealThreeCardHand());
   updateVideoPokerAdvice();
   updateThreeCardAdvice();
@@ -832,6 +836,32 @@ function dealVideoPokerHand() {
   state.videoPokerHeldIndexes = null;
   playGameSound("videoPoker", "card");
   updateVideoPokerAdvice();
+}
+
+function drawVideoPokerHand() {
+  const cards = getCards(elements.videoPokerCards, "vp");
+  if (Core.hasDuplicateCards(cards)) return;
+  const holdIndexes = state.videoPokerHeldIndexes || videoPokerHoldIndexes(cards, Core.videoPokerHold(cards));
+  const originalCardKeys = new Set(cards.map(cardKey));
+  const replacementCards = shuffledDeck().filter((card) => !originalCardKeys.has(cardKey(card)));
+  let replacementIndex = 0;
+  const drawnCards = cards.map((card, index) => {
+    if (holdIndexes.has(index)) return card;
+    const replacement = replacementCards[replacementIndex];
+    replacementIndex += 1;
+    return replacement;
+  });
+
+  setCardPickerCards(elements.videoPokerCards, "vp", drawnCards);
+  state.videoPokerHeldIndexes = null;
+  playGameSound("videoPoker", "card");
+  updateVideoPokerAdvice();
+  elements.videoPokerMachineMessage.textContent = "Draw Complete";
+  elements.videoPokerAdvice.innerHTML += `<br>Draw replaced ${cards.length - holdIndexes.size} card${cards.length - holdIndexes.size === 1 ? "" : "s"}.`;
+}
+
+function cardKey(card) {
+  return `${card.rank}${card.suit}`;
 }
 
 function renderVideoPokerScreen(cards, result, holdIndexes = videoPokerHoldIndexes(cards, result)) {

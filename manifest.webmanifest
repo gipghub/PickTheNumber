@@ -1,6 +1,6 @@
 {
-  "name": "Pick The Number",
-  "short_name": "PickNumber",
+  "name": "Spin, Deal & Draw",
+  "short_name": "SpinDraw",
   "description": "Lottery number analysis and casino strategy helpers for entertainment.",
   "start_url": ".",
   "scope": ".",

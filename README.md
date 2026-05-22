@@ -1,6 +1,6 @@
-# Pick The Number
+# Spin, Deal & Draw
 
-Pick The Number is an installable static PWA for casual lottery players who want entertainment-first, data-aware picks for Powerball and Mega Millions. It also includes simple strategy helpers for blackjack, Jacks or Better video poker, craps, 3 card poker, slots, and bankroll planning.
+Spin, Deal & Draw is an installable static PWA for casual lottery players who want entertainment-first, data-aware picks for Powerball and Mega Millions. It also includes simple strategy helpers for blackjack, Jacks or Better video poker, craps, 3 card poker, slots, and bankroll planning.
 
 ## What It Does
 

@@ -2798,6 +2798,7 @@ input:focus {
 
 .paytable-strip span,
 .machine-buttons span,
+.machine-buttons button,
 .slot-button-row span,
 .slot-dashboard span {
   min-height: 32px;
@@ -2840,13 +2841,16 @@ input:focus {
 }
 
 .machine-buttons span,
+.machine-buttons button,
 .slot-button-row span {
   background: linear-gradient(180deg, #eff5f9, #aab8c4);
   color: #101820;
   border: 1px solid rgba(255, 255, 255, 0.32);
+  cursor: pointer;
 }
 
-.video-poker-cabinet .machine-buttons span {
+.video-poker-cabinet .machine-buttons span,
+.video-poker-cabinet .machine-buttons button {
   min-height: 46px;
   border: 3px solid #b6a838;
   background: linear-gradient(180deg, #f4f06b, #c0b93e);
@@ -2854,6 +2858,13 @@ input:focus {
   font-family: "Courier New", ui-monospace, monospace;
   font-size: clamp(0.74rem, 1.5vw, 1rem);
   text-transform: uppercase;
+}
+
+.video-poker-cabinet .machine-buttons button:hover,
+.video-poker-cabinet .machine-buttons button:focus-visible {
+  outline: none;
+  filter: brightness(1.12);
+  transform: translateY(-1px);
 }
 
 .video-poker-cabinet .machine-buttons span:nth-child(4) {
@@ -3027,10 +3038,9 @@ input:focus {
 .craps-map {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(230px, 0.38fr);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
   min-height: 540px;
-  padding: 86px 26px 46px 42px;
+  padding: 86px 300px 46px 42px;
   border: 14px solid #8a5208;
   border-radius: 110px;
   background:
@@ -3315,6 +3325,10 @@ input:focus {
 }
 
 .craps-prop-layout {
+  position: absolute;
+  right: 34px;
+  top: 132px;
+  width: 238px;
   display: grid;
   align-content: center;
   gap: 8px;
@@ -3408,7 +3422,13 @@ input:focus {
 .craps-chip-column span {
   width: 32px;
   height: 32px;
-  background: rgba(8, 166, 117, 0.92);
+  border-color: #ffd75b;
+  background: radial-gradient(circle, #fff4ae 0 26%, #d4972b 27% 100%);
+  color: #101820;
+  cursor: pointer;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.24),
+    inset 0 0 0 2px rgba(16, 24, 32, 0.18);
 }
 
 .craps-action-chip {
@@ -4930,6 +4950,8 @@ input:focus {
   }
 
   .craps-prop-layout {
+    position: static;
+    width: auto;
     gap: 6px;
   }
 
