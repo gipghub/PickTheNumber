@@ -637,7 +637,27 @@
               <div class="panel">
                 <div class="section-heading">
                   <span>Slots Session Planner</span>
-                  <small>Budget, RTP, volatility</small>
+                  <div class="heading-actions">
+                    <small>Budget, RTP, volatility</small>
+                    <button
+                      class="slot-rules-open"
+                      id="slotRulesOpen"
+                      type="button"
+                      aria-controls="slotRulesModal"
+                      aria-expanded="false"
+                    >
+                      Pay & Rules
+                    </button>
+                    <button
+                      class="slot-profile-open"
+                      id="slotProfileOpen"
+                      type="button"
+                      aria-controls="slotProfileModal"
+                      aria-expanded="false"
+                    >
+                      Profile
+                    </button>
+                  </div>
                 </div>
                 <div class="casino-visual slots-visual" aria-label="Video slot machine preview">
                   <div class="slot-machine themed-slot-machine basketball-slot-machine">
@@ -749,69 +769,87 @@
                     </div>
                   </div>
                 </div>
-                <div class="form-grid">
-                  <div class="field-stack">
-                    <label for="slotBankroll">Bankroll</label>
-                    <input id="slotBankroll" type="number" min="10" value="100" />
-                  </div>
-                  <div class="field-stack">
-                    <label for="slotBet">Spin size</label>
-                    <input id="slotBet" type="number" min="0.25" step="0.25" value="1" />
-                  </div>
-                  <div class="field-stack">
-                    <label for="slotRtp">Advertised RTP %</label>
-                    <input id="slotRtp" type="number" min="80" max="99.5" step="0.1" value="98" />
-                  </div>
-                  <div class="field-stack">
-                    <label for="slotVolatility">Volatility</label>
-                    <select id="slotVolatility">
-                      <option value="low">Low</option>
-                      <option value="medium" selected>Medium</option>
-                      <option value="high">High</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="slot-reference-grid">
-                  <section class="slot-reference-panel">
-                    <h3>Pay Chart</h3>
-                    <dl class="slot-pay-chart">
-                      <div><dt>Single line hit</dt><dd>1x bet</dd></div>
-                      <div><dt>Double line hit</dt><dd>2x bet</dd></div>
-                      <div><dt>Full court line</dt><dd>5x bet</dd></div>
-                      <div><dt>Wild streak</dt><dd>10x bet</dd></div>
-                      <div><dt>Free throw feature</dt><dd>20x bet</dd></div>
-                      <div><dt>Heat check feature</dt><dd>50x bet</dd></div>
-                      <div><dt>Progressive shot</dt><dd>100x bet</dd></div>
-                    </dl>
-                  </section>
-                  <section class="slot-reference-panel">
-                    <h3>How To Play</h3>
-                    <ol class="slot-how-list">
-                      <li>Set bankroll, spin size, RTP, and volatility.</li>
-                      <li>Spin the 5 active row lines; credits subtract the bet and add modeled wins.</li>
-                      <li>Bonus pots are scatter-style meters, not row-line symbol matches.</li>
-                      <li>When a pot fills, it launches a basketball bonus play with its own award roll.</li>
-                    </ol>
-                  </section>
-                  <section class="slot-reference-panel">
-                    <h3>Line Rules</h3>
-                    <div class="slot-rule-tags">
-                      <span>5 row lines</span>
-                      <span>No diagonals</span>
-                      <span>No ways mode</span>
-                      <span>Scatter bonus pots</span>
+                <div class="slot-profile-modal" id="slotProfileModal" role="dialog" aria-modal="true" aria-labelledby="slotProfileTitle" hidden>
+                  <div class="slot-profile-dialog">
+                    <button class="slot-profile-close" id="slotProfileClose" type="button" aria-label="Close slot profile">×</button>
+                    <div class="slot-profile-title">
+                      <span id="slotProfileTitle">Slot Profile</span>
+                      <small>Session settings and explanation</small>
                     </div>
-                    <p>
-                      Base wins are modeled on the five horizontal rows. A symbol in any spot in a column would be a
-                      separate ways-to-win rule set, like 243 ways, and this machine is not using that mode yet.
-                    </p>
-                    <p>
-                      The three pots save between visits and advance from independent randomizers after spins. They can
-                      trigger a bonus without needing matching symbols on the same row.
-                    </p>
-                  </section>
+                    <div class="form-grid slot-profile-form">
+                      <div class="field-stack">
+                        <label for="slotBankroll">Bankroll</label>
+                        <input id="slotBankroll" type="number" min="10" value="100" />
+                      </div>
+                      <div class="field-stack">
+                        <label for="slotBet">Spin size</label>
+                        <input id="slotBet" type="number" min="0.25" step="0.25" value="1" />
+                      </div>
+                      <div class="field-stack">
+                        <label for="slotRtp">Advertised RTP %</label>
+                        <input id="slotRtp" type="number" min="80" max="99.5" step="0.1" value="98" />
+                      </div>
+                      <div class="field-stack">
+                        <label for="slotVolatility">Volatility</label>
+                        <select id="slotVolatility">
+                          <option value="low">Low</option>
+                          <option value="medium" selected>Medium</option>
+                          <option value="high">High</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="advice-box slot-profile-advice" id="slotsAdvice"></div>
+                  </div>
                 </div>
-                <div class="advice-box" id="slotsAdvice"></div>
+                <div class="slot-rules-modal" id="slotRulesModal" role="dialog" aria-modal="true" aria-labelledby="slotRulesTitle" hidden>
+                  <div class="slot-rules-dialog">
+                    <button class="slot-rules-close" id="slotRulesClose" type="button" aria-label="Close pay and rules">×</button>
+                    <div class="slot-rules-title">
+                      <span id="slotRulesTitle">Pay & Rules</span>
+                      <small>Full Court Fortune</small>
+                    </div>
+                    <div class="slot-reference-grid">
+                      <section class="slot-reference-panel">
+                        <h3>Pay Chart</h3>
+                        <dl class="slot-pay-chart">
+                          <div><dt>Single line hit</dt><dd>1x bet</dd></div>
+                          <div><dt>Double line hit</dt><dd>2x bet</dd></div>
+                          <div><dt>Full court line</dt><dd>5x bet</dd></div>
+                          <div><dt>Wild streak</dt><dd>10x bet</dd></div>
+                          <div><dt>Free throw feature</dt><dd>20x bet</dd></div>
+                          <div><dt>Heat check feature</dt><dd>50x bet</dd></div>
+                          <div><dt>Progressive shot</dt><dd>100x bet</dd></div>
+                        </dl>
+                      </section>
+                      <section class="slot-reference-panel">
+                        <h3>How To Play</h3>
+                        <ol class="slot-how-list">
+                          <li>Set bankroll, spin size, RTP, and volatility.</li>
+                          <li>Spin the 5 active row lines; credits subtract the bet and add modeled wins.</li>
+                          <li>Bonus pots are scatter-style meters, not row-line symbol matches.</li>
+                          <li>When a pot fills, it launches a basketball bonus play with its own award roll.</li>
+                        </ol>
+                      </section>
+                      <section class="slot-reference-panel">
+                        <h3>Line Rules</h3>
+                        <div class="slot-rule-tags">
+                          <span>5 row lines</span>
+                          <span>No diagonals</span>
+                          <span>No ways mode</span>
+                          <span>Scatter bonus pots</span>
+                        </div>
+                        <p>
+                          Base wins are modeled on the five horizontal rows. A symbol in any spot in a column would be a
+                          separate ways-to-win rule set, like 243 ways, and this machine is not using that mode yet.
+                        </p>
+                        <p>
+                          The three pots save between visits and advance from independent randomizers after spins. They can
+                          trigger a bonus without needing matching symbols on the same row.
+                        </p>
+                      </section>
+                    </div>
+                  </div>
+                </div>
               </div>
             </section>
           </div>
@@ -866,6 +904,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js?v=34" defer></script>
+    <script src="app.js?v=36" defer></script>
   </body>
 </html>

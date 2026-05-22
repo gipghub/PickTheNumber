@@ -75,6 +75,8 @@ const state = {
   slotTotalWon: 0,
   slotSpinCount: 0,
   slotLastOutcome: null,
+  slotRulesLastFocus: null,
+  slotProfileLastFocus: null,
   serviceWorkerRefreshing: false,
   soundEnabled: false,
   audioContext: null,
@@ -130,6 +132,12 @@ const elements = {
   slotsAdvice: $("#slotsAdvice"),
   slotReels: $("#slotReels"),
   slotSpinButton: $("#slotSpinButton"),
+  slotRulesOpen: $("#slotRulesOpen"),
+  slotRulesClose: $("#slotRulesClose"),
+  slotRulesModal: $("#slotRulesModal"),
+  slotProfileOpen: $("#slotProfileOpen"),
+  slotProfileClose: $("#slotProfileClose"),
+  slotProfileModal: $("#slotProfileModal"),
   slotSpinMeter: $("#slotSpinMeter"),
   slotCreditsMeter: $("#slotCreditsMeter"),
   slotWinMeter: $("#slotWinMeter"),
@@ -829,8 +837,59 @@ function setupSlots() {
     if (!event.target.closest("[data-slot-bonus-close]")) return;
     hideSlotBonusScreen();
   });
+  elements.slotRulesOpen.addEventListener("click", openSlotRules);
+  elements.slotRulesClose.addEventListener("click", closeSlotRules);
+  elements.slotRulesModal.addEventListener("click", (event) => {
+    if (event.target === elements.slotRulesModal) closeSlotRules();
+  });
+  elements.slotProfileOpen.addEventListener("click", openSlotProfile);
+  elements.slotProfileClose.addEventListener("click", closeSlotProfile);
+  elements.slotProfileModal.addEventListener("click", (event) => {
+    if (event.target === elements.slotProfileModal) closeSlotProfile();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (!elements.slotRulesModal.hidden) closeSlotRules();
+    if (!elements.slotProfileModal.hidden) closeSlotProfile();
+  });
   updateSlotsAdvice();
   maybeShowSlotBonusPreview();
+}
+
+function openSlotRules() {
+  state.slotRulesLastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  elements.slotRulesModal.hidden = false;
+  elements.slotRulesModal.classList.add("is-open");
+  elements.slotRulesOpen.setAttribute("aria-expanded", "true");
+  document.body.classList.add("slot-rules-opened");
+  playGameSound("ui", "tap");
+  elements.slotRulesClose.focus();
+}
+
+function closeSlotRules() {
+  elements.slotRulesModal.classList.remove("is-open");
+  elements.slotRulesModal.hidden = true;
+  elements.slotRulesOpen.setAttribute("aria-expanded", "false");
+  document.body.classList.remove("slot-rules-opened");
+  if (state.slotRulesLastFocus) state.slotRulesLastFocus.focus();
+}
+
+function openSlotProfile() {
+  state.slotProfileLastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  elements.slotProfileModal.hidden = false;
+  elements.slotProfileModal.classList.add("is-open");
+  elements.slotProfileOpen.setAttribute("aria-expanded", "true");
+  document.body.classList.add("slot-profile-opened");
+  playGameSound("ui", "tap");
+  elements.slotProfileClose.focus();
+}
+
+function closeSlotProfile() {
+  elements.slotProfileModal.classList.remove("is-open");
+  elements.slotProfileModal.hidden = true;
+  elements.slotProfileOpen.setAttribute("aria-expanded", "false");
+  document.body.classList.remove("slot-profile-opened");
+  if (state.slotProfileLastFocus) state.slotProfileLastFocus.focus();
 }
 
 function handleSlotAnimationEnd(event) {
