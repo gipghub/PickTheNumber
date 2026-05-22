@@ -507,19 +507,45 @@
                   <small>Queen-six-four threshold</small>
                 </div>
                 <div class="casino-visual three-card-visual" aria-label="3 Card Poker table preview">
-                  <div class="felt-table three-card-table">
-                    <div class="dealer-cards" aria-hidden="true">
+                  <div class="felt-table three-card-table three-card-felt" id="threeCardTableGraphic">
+                    <div class="tc-table-title">Three Card Poker</div>
+                    <aside class="tc-rules">
+                      <p><strong>Play</strong> must equal Ante</p>
+                      <p>Dealer plays with queen high or better</p>
+                      <p>When dealer does not play <strong>Play push · Ante 1 to 1</strong></p>
+                      <p>When dealer plays <strong>Play 1 to 1 · Ante 1 to 1</strong></p>
+                    </aside>
+                    <div class="tc-bet-layout" aria-label="3 Card Poker betting layout">
+                      <span class="tc-bet-ring"></span>
+                      <span class="tc-bet-spot pair-plus">Pair<br />Plus</span>
+                      <span class="tc-bet-diamond ante">Ante</span>
+                      <span class="tc-play-box">
+                        <span class="tc-bet-diamond play">Play</span>
+                      </span>
+                    </div>
+                    <aside class="tc-pays" aria-label="3 Card Poker paytable">
+                      <h3>Pair Plus Pays</h3>
+                      <dl>
+                        <div><dt>Pair</dt><dd>1 to 1</dd></div>
+                        <div><dt>Flush</dt><dd>4 to 1</dd></div>
+                        <div><dt>Straight</dt><dd>6 to 1</dd></div>
+                        <div><dt>Three of a kind</dt><dd>30 to 1</dd></div>
+                        <div><dt>Straight flush</dt><dd>40 to 1</dd></div>
+                      </dl>
+                      <h3>Ante Bonus Pays</h3>
+                      <dl>
+                        <div><dt>Straight</dt><dd>1 to 1</dd></div>
+                        <div><dt>Three of a kind</dt><dd>4 to 1</dd></div>
+                        <div><dt>Straight flush</dt><dd>5 to 1</dd></div>
+                      </dl>
+                    </aside>
+                    <div class="tc-dealer-cards dealer-cards" aria-hidden="true">
                       <span class="graphic-card back"></span>
                       <span class="graphic-card back"></span>
                       <span class="graphic-card back"></span>
                     </div>
-                    <div class="three-card-bets">
-                      <span>Pair Plus</span>
-                      <span>Ante</span>
-                      <span>Play</span>
-                    </div>
-                    <div class="machine-hand table-hand" id="threeCardHandGraphic"></div>
-                    <strong class="action-plaque" id="threeCardActionGraphic">Play</strong>
+                    <div class="machine-hand table-hand tc-player-hand" id="threeCardHandGraphic"></div>
+                    <strong class="action-plaque tc-action-plaque" id="threeCardActionGraphic">Play</strong>
                   </div>
                 </div>
                 <div class="card-picker compact" id="threeCardCards"></div>

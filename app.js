@@ -563,11 +563,13 @@ function updateThreeCardAdvice() {
     elements.threeCardAdvice.innerHTML =
       "<strong>Choose three unique cards.</strong><br>The same card cannot appear twice in a real hand.";
     elements.threeCardActionGraphic.textContent = "Check";
+    elements.threeCardActionGraphic.classList.remove("is-fold");
     return;
   }
   const result = Core.threeCardDecision(cards);
   elements.threeCardAdvice.innerHTML = `<strong>${result.action}.</strong><br>${result.detail}`;
   elements.threeCardActionGraphic.textContent = result.action;
+  elements.threeCardActionGraphic.classList.toggle("is-fold", result.action === "Fold");
 }
 
 function setupSlots() {
