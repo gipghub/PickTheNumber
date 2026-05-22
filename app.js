@@ -65,8 +65,12 @@ const elements = {
   slotReels: $("#slotReels"),
   slotSpinButton: $("#slotSpinButton"),
   slotSpinMeter: $("#slotSpinMeter"),
+  slotBonusMeter: $("#slotBonusMeter"),
   slotLossMeter: $("#slotLossMeter"),
   slotStopMeter: $("#slotStopMeter"),
+  slotFreeThrowPot: $("#slotFreeThrowPot"),
+  slotHeatCheckPot: $("#slotHeatCheckPot"),
+  slotChampionshipPot: $("#slotChampionshipPot"),
   slotBetBadge: $("#slotBetBadge"),
   slotGrandMeter: $("#slotGrandMeter"),
   slotMajorMeter: $("#slotMajorMeter"),
@@ -618,9 +622,9 @@ function renderVideoPokerCard(card, isHeld) {
 function renderSlotVisual(plan) {
   const volatility = elements.slotVolatility.value;
   const symbolSets = {
-    low: ["bag", "coin", "bag", "gem", "wild", "chest"],
-    medium: ["bag", "gem", "wild", "bonus", "coin", "chest"],
-    high: ["wild", "bonus", "grand", "gem", "chest", "coin"],
+    low: ["basketball", "basketball", "whistle", "sneaker", "arena", "jersey", "scoreboard", "ring", "bonus-free"],
+    medium: ["basketball", "sneaker", "arena", "scoreboard", "ring", "trophy", "wild", "bonus-free", "fire-seven"],
+    high: ["basketball", "ring", "trophy", "wild", "bonus-free", "fire-seven", "jackpot-hoop", "scoreboard"],
   };
   const symbols = symbolSets[volatility] || symbolSets.medium;
   const seed =
@@ -630,35 +634,68 @@ function renderSlotVisual(plan) {
     volatility.length +
     state.slotSpinSeed;
 
-  elements.slotReels.innerHTML = Array.from({ length: 15 }, (_, index) => {
+  const reelSymbols = Array.from({ length: 25 }, (_, index) => {
     const label = symbols[Math.abs(Math.floor(seed + index * 3 + index * index)) % symbols.length];
-    return renderSlotSymbol(label, index);
-  }).join("");
+    return index === 12 && !symbols.includes("jackpot-hoop") ? "bonus-free" : label;
+  });
+
+  elements.slotReels.innerHTML = reelSymbols.map((label, index) => renderSlotSymbol(label, index)).join("");
   elements.slotSpinMeter.textContent = `${plan.spins} spins`;
   elements.slotLossMeter.textContent = `$${plan.expectedLoss.toFixed(2)} expected loss`;
   elements.slotStopMeter.textContent = `$${plan.stopLoss.toFixed(0)} stop`;
   elements.slotBetBadge.textContent = `$${Number(elements.slotBet.value || 0).toFixed(2)}`;
+  updateSlotBonusMeters(reelSymbols);
   elements.slotGrandMeter.textContent = `$${Math.max(5000, plan.winGoal * 250).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   elements.slotMajorMeter.textContent = `$${Math.max(1000, plan.winGoal * 50).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   elements.slotMinorMeter.textContent = `$${Math.max(100, plan.stopLoss * 4).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   elements.slotMiniMeter.textContent = `$${Math.max(25, plan.stopLoss).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
+function updateSlotBonusMeters(symbols) {
+  const counts = symbols.reduce((summary, symbol) => {
+    summary[symbol] = (summary[symbol] || 0) + 1;
+    return summary;
+  }, {});
+
+  const freeThrowCount = counts["bonus-free"] || 0;
+  const heatCount = (counts["fire-seven"] || 0) + (counts.wild || 0);
+  const champCount = (counts.ring || 0) + (counts.trophy || 0) + (counts["jackpot-hoop"] || 0);
+  setSlotPot(elements.slotFreeThrowPot, freeThrowCount, 3);
+  setSlotPot(elements.slotHeatCheckPot, heatCount, 4);
+  setSlotPot(elements.slotChampionshipPot, champCount, 5);
+
+  const bonusTotal = freeThrowCount + heatCount + (counts["jackpot-hoop"] || 0);
+  elements.slotBonusMeter.textContent =
+    bonusTotal >= 3 ? `${bonusTotal} bonus symbols showing` : `${3 - bonusTotal} more to bonus`;
+}
+
+function setSlotPot(element, count, target) {
+  const fill = Math.min(100, Math.round((count / target) * 100));
+  element.style.setProperty("--pot-fill", `${fill}%`);
+  element.querySelector("b").dataset.count = `${Math.min(count, target)}/${target}`;
+  element.classList.toggle("is-full", count >= target);
+}
+
 function renderSlotSymbol(symbol, index) {
   const labels = {
-    bag: ["Prize Bag", "bag"],
-    coin: ["Coin", "coin"],
-    gem: ["Gem", "gem"],
-    wild: ["Wild", "wild"],
-    bonus: ["Bonus", "bonus"],
-    chest: ["Chest", "chest"],
-    grand: ["Grand", "grand"],
+    arena: ["Arena", "arena", "arena.png"],
+    basketball: ["Ball", "basketball", "basketball.png"],
+    "bonus-free": ["Bonus", "bonus-free", "bonus-free.png"],
+    "fire-seven": ["Fire 7s", "fire-seven", "fire-seven.png"],
+    "jackpot-hoop": ["Jackpot", "jackpot-hoop", "jackpot-hoop.png"],
+    jersey: ["Jersey", "jersey", "jersey.png"],
+    ring: ["Ring", "ring", "ring.png"],
+    scoreboard: ["Board", "scoreboard", "scoreboard.png"],
+    sneaker: ["Sneaker", "sneaker", "sneaker.png"],
+    trophy: ["Trophy", "trophy", "trophy.png"],
+    whistle: ["Whistle", "whistle", "whistle.png"],
+    wild: ["Wild", "wild", "wild.png"],
   };
-  const [label, className] = labels[symbol] || labels.coin;
-  const featured = index === 0 || index === 5 || symbol === "grand";
+  const [label, className, fileName] = labels[symbol] || labels.basketball;
+  const featured = ["bonus-free", "fire-seven", "jackpot-hoop", "wild"].includes(symbol);
   return `
     <span class="slot-reel ${className} ${featured ? "featured" : ""}">
-      <i class="slot-symbol-art"></i>
+      <img class="slot-symbol-art" src="./assets/slots/${fileName}" alt="" loading="lazy" />
       <strong>${label}</strong>
     </span>
   `;

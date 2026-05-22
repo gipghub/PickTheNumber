@@ -1,4 +1,4 @@
-const CACHE_NAME = "pick-the-number-v12";
+const CACHE_NAME = "pick-the-number-v13";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,6 +7,18 @@ const APP_SHELL = [
   "./app.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",
+  "./assets/slots/arena.png",
+  "./assets/slots/basketball.png",
+  "./assets/slots/bonus-free.png",
+  "./assets/slots/fire-seven.png",
+  "./assets/slots/jackpot-hoop.png",
+  "./assets/slots/jersey.png",
+  "./assets/slots/ring.png",
+  "./assets/slots/scoreboard.png",
+  "./assets/slots/sneaker.png",
+  "./assets/slots/trophy.png",
+  "./assets/slots/whistle.png",
+  "./assets/slots/wild.png",
 ];
 
 self.addEventListener("install", (event) => {
