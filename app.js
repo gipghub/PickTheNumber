@@ -7,6 +7,8 @@ const { FIVE_YEARS_DAYS, GAMES, RANKS, SUITS, RANK_VALUE } = Core;
 const DB_NAME = "pick-the-number-db";
 const DB_VERSION = 1;
 const SOUND_STORAGE_KEY = "pick-the-number-sound";
+const SLOT_SPIN_DURATION_MS = 1300;
+const SLOT_SETTLE_DURATION_MS = 650;
 
 const state = {
   db: null,
@@ -14,6 +16,9 @@ const state = {
   draws: [],
   deferredInstallPrompt: null,
   slotSpinSeed: 0,
+  slotSpinning: false,
+  slotSpinFallback: null,
+  slotSettleFallback: null,
   soundEnabled: false,
   audioContext: null,
 };
@@ -735,13 +740,56 @@ function setupSlots() {
     }),
   );
   elements.slotSpinButton.addEventListener("click", () => {
+    if (state.slotSpinning) return;
+    state.slotSpinning = true;
     playGameSound("slots", "spin");
-    state.slotSpinSeed = Math.floor(Math.random() * 100000);
+    elements.slotSpinButton.disabled = true;
+    elements.slotSpinButton.querySelector("span").textContent = "Spin...";
+    elements.slotReels.classList.remove("is-settling");
     elements.slotReels.classList.add("is-spinning");
-    window.setTimeout(() => elements.slotReels.classList.remove("is-spinning"), 520);
-    updateSlotsAdvice(true);
+    window.clearTimeout(state.slotSpinFallback);
+    window.clearTimeout(state.slotSettleFallback);
+    state.slotSpinFallback = window.setTimeout(finishSlotSpin, SLOT_SPIN_DURATION_MS + 250);
   });
+  elements.slotReels.addEventListener("animationend", handleSlotAnimationEnd);
   updateSlotsAdvice();
+}
+
+function handleSlotAnimationEnd(event) {
+  if (event.target !== elements.slotReels) return;
+  if (elements.slotReels.classList.contains("is-spinning")) {
+    finishSlotSpin();
+    return;
+  }
+  if (elements.slotReels.classList.contains("is-settling")) {
+    finishSlotSettle();
+  }
+}
+
+function finishSlotSpin() {
+  if (!state.slotSpinning || !elements.slotReels.classList.contains("is-spinning")) return;
+  window.clearTimeout(state.slotSpinFallback);
+  state.slotSpinFallback = null;
+  state.slotSpinSeed = Math.floor(Math.random() * 100000);
+  elements.slotReels.classList.remove("is-spinning");
+  elements.slotReels.classList.add("is-settling");
+  window.clearTimeout(state.slotSettleFallback);
+  state.slotSettleFallback = window.setTimeout(finishSlotSettle, SLOT_SETTLE_DURATION_MS + 250);
+  try {
+    updateSlotsAdvice(true);
+  } catch (error) {
+    console.error("Slot reel update failed", error);
+  }
+}
+
+function finishSlotSettle() {
+  if (!state.slotSpinning) return;
+  window.clearTimeout(state.slotSettleFallback);
+  state.slotSettleFallback = null;
+  elements.slotReels.classList.remove("is-settling");
+  elements.slotSpinButton.disabled = false;
+  elements.slotSpinButton.querySelector("span").textContent = "Spin";
+  state.slotSpinning = false;
 }
 
 function updateSlotsAdvice(playResultSound = false) {
@@ -849,8 +897,10 @@ function renderSlotSymbol(symbol, index) {
   };
   const [label, className, fileName] = labels[symbol] || labels.basketball;
   const featured = ["bonus-free", "fire-seven", "jackpot-hoop", "wild"].includes(symbol);
+  const reelIndex = index % 5;
+  const rowIndex = Math.floor(index / 5);
   return `
-    <span class="slot-reel ${className} ${featured ? "featured" : ""}">
+    <span class="slot-reel ${className} ${featured ? "featured" : ""}" style="--reel-index: ${reelIndex}; --row-index: ${rowIndex};">
       <img class="slot-symbol-art" src="./assets/slots/${fileName}" alt="" loading="lazy" />
       <strong>${label}</strong>
     </span>
