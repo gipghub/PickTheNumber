@@ -63,6 +63,11 @@ const elements = {
   slotSpinMeter: $("#slotSpinMeter"),
   slotLossMeter: $("#slotLossMeter"),
   slotStopMeter: $("#slotStopMeter"),
+  slotBetBadge: $("#slotBetBadge"),
+  slotGrandMeter: $("#slotGrandMeter"),
+  slotMajorMeter: $("#slotMajorMeter"),
+  slotMinorMeter: $("#slotMinorMeter"),
+  slotMiniMeter: $("#slotMiniMeter"),
   slotBankroll: $("#slotBankroll"),
   slotBet: $("#slotBet"),
   slotRtp: $("#slotRtp"),
@@ -599,9 +604,9 @@ function renderVideoPokerCard(card, isHeld) {
 function renderSlotVisual(plan) {
   const volatility = elements.slotVolatility.value;
   const symbolSets = {
-    low: ["Cherry", "Bar", "Bell", "Bar", "Seven"],
-    medium: ["Cherry", "Bell", "Bar", "Seven", "Wild"],
-    high: ["Seven", "Wild", "Bonus", "Diamond", "Jackpot"],
+    low: ["bag", "coin", "bag", "gem", "wild", "chest"],
+    medium: ["bag", "gem", "wild", "bonus", "coin", "chest"],
+    high: ["wild", "bonus", "grand", "gem", "chest", "coin"],
   };
   const symbols = symbolSets[volatility] || symbolSets.medium;
   const seed =
@@ -610,14 +615,38 @@ function renderSlotVisual(plan) {
     Number(elements.slotRtp.value) * 11 +
     volatility.length;
 
-  elements.slotReels.innerHTML = Array.from({ length: 5 }, (_, index) => {
-    const label = symbols[Math.abs(Math.floor(seed + index * 2)) % symbols.length];
-    const tone = index % 3 === 0 ? "red" : index % 3 === 1 ? "gold" : "blue";
-    return `<span class="slot-reel ${tone}">${label}</span>`;
+  elements.slotReels.innerHTML = Array.from({ length: 15 }, (_, index) => {
+    const label = symbols[Math.abs(Math.floor(seed + index * 3 + index * index)) % symbols.length];
+    return renderSlotSymbol(label, index);
   }).join("");
   elements.slotSpinMeter.textContent = `${plan.spins} spins`;
   elements.slotLossMeter.textContent = `$${plan.expectedLoss.toFixed(2)} expected loss`;
   elements.slotStopMeter.textContent = `$${plan.stopLoss.toFixed(0)} stop`;
+  elements.slotBetBadge.textContent = `$${Number(elements.slotBet.value || 0).toFixed(2)}`;
+  elements.slotGrandMeter.textContent = `$${Math.max(5000, plan.winGoal * 250).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  elements.slotMajorMeter.textContent = `$${Math.max(1000, plan.winGoal * 50).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  elements.slotMinorMeter.textContent = `$${Math.max(100, plan.stopLoss * 4).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  elements.slotMiniMeter.textContent = `$${Math.max(25, plan.stopLoss).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+}
+
+function renderSlotSymbol(symbol, index) {
+  const labels = {
+    bag: ["Prize Bag", "bag"],
+    coin: ["Coin", "coin"],
+    gem: ["Gem", "gem"],
+    wild: ["Wild", "wild"],
+    bonus: ["Bonus", "bonus"],
+    chest: ["Chest", "chest"],
+    grand: ["Grand", "grand"],
+  };
+  const [label, className] = labels[symbol] || labels.coin;
+  const featured = index === 0 || index === 5 || symbol === "grand";
+  return `
+    <span class="slot-reel ${className} ${featured ? "featured" : ""}">
+      <i class="slot-symbol-art"></i>
+      <strong>${label}</strong>
+    </span>
+  `;
 }
 
 function setupBankroll() {
