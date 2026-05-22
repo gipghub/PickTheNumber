@@ -403,7 +403,12 @@
   display: none;
 }
 
-.slot-bonus-screen.is-open {
+.slot-bonus-screen[hidden]:target {
+  display: block;
+}
+
+.slot-bonus-screen.is-open,
+.slot-bonus-screen:target {
   opacity: 1;
   transform: translateX(-50%) scale(1);
 }

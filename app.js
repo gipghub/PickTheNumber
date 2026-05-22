@@ -545,9 +545,12 @@ function showStrategy(strategyId) {
 }
 
 function applyInitialRoute() {
-  const view = new URLSearchParams(window.location.search).get("view");
+  const params = new URLSearchParams(window.location.search);
+  const view = params.get("view");
+  const strategy = params.get("strategy");
   if (view === "strategy") showView("strategyView");
   if (view === "bankroll") showView("bankrollView");
+  if (strategy) showStrategy(strategy);
 }
 
 function setupBlackjack() {
@@ -823,6 +826,7 @@ function setupSlots() {
   });
   elements.slotReels.addEventListener("animationend", handleSlotAnimationEnd);
   updateSlotsAdvice();
+  maybeShowSlotBonusPreview();
 }
 
 function handleSlotAnimationEnd(event) {
@@ -1205,6 +1209,22 @@ function showSlotBonusScreen(triggeredEvents) {
 
   window.clearTimeout(state.slotBonusTimeout);
   state.slotBonusTimeout = window.setTimeout(hideSlotBonusScreen, 6200);
+}
+
+function maybeShowSlotBonusPreview() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("slotBonus") !== "preview") return;
+
+  const bonus = {
+    ...SLOT_BONUS_PLAYS.hoopJackpot,
+    key: "hoopJackpot",
+    value: "Major",
+    award: "Major shot",
+    meter: 78,
+    multiplier: 150,
+  };
+  showSlotBonusScreen([{ type: "trigger", key: "championship", label: "Championship Pot", bonus }]);
+  elements.slotBonusMeter.textContent = "Hoop Jackpot bonus preview";
 }
 
 function hideSlotBonusScreen() {
