@@ -47,6 +47,7 @@ const elements = {
   videoPokerCards: $("#videoPokerCards"),
   videoPokerAdvice: $("#videoPokerAdvice"),
   videoPokerHandGraphic: $("#videoPokerHandGraphic"),
+  videoPokerHoldGraphic: $("#videoPokerHoldGraphic"),
   videoPokerMachineMessage: $("#videoPokerMachineMessage"),
   crapsAdvice: $("#crapsAdvice"),
   crapsPointMarker: $("#crapsPointMarker"),
@@ -467,16 +468,69 @@ function getCards(container, prefix) {
 
 function updateVideoPokerAdvice() {
   const cards = getCards(elements.videoPokerCards, "vp");
-  renderGraphicCards(elements.videoPokerHandGraphic, cards);
   if (Core.hasDuplicateCards(cards)) {
+    renderVideoPokerScreen(cards, { title: "Duplicate card", detail: "" });
     elements.videoPokerAdvice.innerHTML =
       "<strong>Choose five unique cards.</strong><br>The same card cannot appear twice in a real hand.";
-    elements.videoPokerMachineMessage.textContent = "Duplicate card";
     return;
   }
   const result = Core.videoPokerHold(cards);
+  renderVideoPokerScreen(cards, result);
   elements.videoPokerAdvice.innerHTML = `<strong>${result.title}</strong><br>${result.detail}`;
-  elements.videoPokerMachineMessage.textContent = result.title;
+}
+
+function renderVideoPokerScreen(cards, result) {
+  const holdIndexes = videoPokerHoldIndexes(cards, result);
+  elements.videoPokerHoldGraphic.innerHTML = cards
+    .map((_, index) => `<span class="${holdIndexes.has(index) ? "is-held" : ""}">Hold</span>`)
+    .join("");
+  elements.videoPokerHandGraphic.innerHTML = cards
+    .map((card, index) => renderVideoPokerCard(card, holdIndexes.has(index)))
+    .join("");
+  elements.videoPokerMachineMessage.textContent =
+    result.title === "Duplicate card" ? "Duplicate Card" : result.title.replace("Hold all five", "Play 5 Credits");
+}
+
+function videoPokerHoldIndexes(cards, result) {
+  if (!result || !result.title || result.title === "Draw five new cards") return new Set();
+  if (result.title === "Hold all five") return new Set([0, 1, 2, 3, 4]);
+  if (result.title.includes("four-card flush")) return indexesMatching(cards, (card) => card.suit === mostCommon(cards, "suit"));
+  if (result.title.includes("high cards")) return indexesMatching(cards, (card) => ["J", "Q", "K", "A"].includes(card.rank));
+  if (result.title.includes("pair of")) {
+    const pairRank = Object.entries(groupCards(cards, "rank")).find(([, group]) => group.length === 2)?.[0];
+    return indexesMatching(cards, (card) => card.rank === pairRank);
+  }
+  if (result.title.includes("two pair")) {
+    const pairRanks = Object.entries(groupCards(cards, "rank"))
+      .filter(([, group]) => group.length === 2)
+      .map(([rank]) => rank);
+    return indexesMatching(cards, (card) => pairRanks.includes(card.rank));
+  }
+  if (result.title.includes("three of a kind")) {
+    const rank = Object.entries(groupCards(cards, "rank")).find(([, group]) => group.length === 3)?.[0];
+    return indexesMatching(cards, (card) => card.rank === rank);
+  }
+  if (result.title.includes("four of a kind")) {
+    const rank = Object.entries(groupCards(cards, "rank")).find(([, group]) => group.length === 4)?.[0];
+    return indexesMatching(cards, (card) => card.rank === rank);
+  }
+  return new Set([0, 1, 2, 3, 4]);
+}
+
+function indexesMatching(cards, predicate) {
+  return new Set(cards.map((card, index) => (predicate(card) ? index : -1)).filter((index) => index >= 0));
+}
+
+function groupCards(cards, key) {
+  return cards.reduce((groups, card) => {
+    groups[card[key]] = groups[card[key]] || [];
+    groups[card[key]].push(card);
+    return groups;
+  }, {});
+}
+
+function mostCommon(cards, key) {
+  return Object.entries(groupCards(cards, key)).sort((a, b) => b[1].length - a[1].length)[0]?.[0];
 }
 
 function setupCraps() {
@@ -528,6 +582,18 @@ function renderGraphicCard(card) {
   if (card.back) return '<span class="graphic-card back"></span>';
   const isRed = card.suit === "♥" || card.suit === "♦";
   return `<span class="graphic-card ${isRed ? "red" : ""}"><span>${card.rank}</span><small>${card.suit}</small></span>`;
+}
+
+function renderVideoPokerCard(card, isHeld) {
+  const isRed = card.suit === "♥" || card.suit === "♦";
+  const faceLabel = ["J", "Q", "K"].includes(card.rank) ? `<b class="vp-face">${card.rank}</b>` : `<b class="vp-pip">${card.suit}</b>`;
+  return `
+    <span class="vp-card ${isRed ? "red" : ""} ${isHeld ? "is-held" : ""}">
+      <span class="vp-corner top">${card.rank}<small>${card.suit}</small></span>
+      <span class="vp-card-art">${faceLabel}</span>
+      <span class="vp-corner bottom">${card.rank}<small>${card.suit}</small></span>
+    </span>
+  `;
 }
 
 function renderSlotVisual(plan) {

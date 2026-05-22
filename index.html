@@ -246,23 +246,104 @@
                   <small>High-level 9/6 strategy order</small>
                 </div>
                 <div class="casino-visual video-poker-visual" aria-label="Video poker machine preview">
-                  <div class="video-cabinet">
-                    <div class="machine-marquee">Jacks or Better</div>
-                    <div class="machine-screen">
-                      <div class="paytable-strip">
-                        <span>Royal 4000</span>
-                        <span>Straight Flush 250</span>
-                        <span>4 Kind 125</span>
-                        <span>Full House 45</span>
-                        <span>Flush 30</span>
+                  <div class="video-cabinet video-poker-cabinet">
+                    <div class="machine-screen vp-screen">
+                      <div class="vp-paytable" aria-label="Jacks or Better paytable">
+                        <div class="vp-pay-labels">
+                          <span>Royal Flush</span>
+                          <span>Straight Flush</span>
+                          <span>4 Aces</span>
+                          <span>4 2s, 3s, or 4s</span>
+                          <span>4 5s thru Kings</span>
+                          <span>Full House</span>
+                          <span>Flush</span>
+                          <span>Straight</span>
+                          <span>3 of a Kind</span>
+                          <span>Two Pair</span>
+                          <span>Jacks or Better</span>
+                        </div>
+                        <div class="vp-pay-col">
+                          <span>250</span>
+                          <span>50</span>
+                          <span>160</span>
+                          <span>80</span>
+                          <span>40</span>
+                          <span>8</span>
+                          <span>5</span>
+                          <span>4</span>
+                          <span>3</span>
+                          <span>1</span>
+                          <span>1</span>
+                        </div>
+                        <div class="vp-pay-col">
+                          <span>500</span>
+                          <span>100</span>
+                          <span>320</span>
+                          <span>160</span>
+                          <span>80</span>
+                          <span>16</span>
+                          <span>10</span>
+                          <span>8</span>
+                          <span>6</span>
+                          <span>2</span>
+                          <span>2</span>
+                        </div>
+                        <div class="vp-pay-col">
+                          <span>750</span>
+                          <span>150</span>
+                          <span>480</span>
+                          <span>240</span>
+                          <span>120</span>
+                          <span>24</span>
+                          <span>15</span>
+                          <span>12</span>
+                          <span>9</span>
+                          <span>3</span>
+                          <span>3</span>
+                        </div>
+                        <div class="vp-pay-col">
+                          <span>1000</span>
+                          <span>200</span>
+                          <span>640</span>
+                          <span>320</span>
+                          <span>160</span>
+                          <span>32</span>
+                          <span>20</span>
+                          <span>16</span>
+                          <span>12</span>
+                          <span>4</span>
+                          <span>4</span>
+                        </div>
+                        <div class="vp-pay-col max-bet">
+                          <span>4000</span>
+                          <span>250</span>
+                          <span>800</span>
+                          <span>400</span>
+                          <span>200</span>
+                          <span>40</span>
+                          <span>25</span>
+                          <span>20</span>
+                          <span>15</span>
+                          <span>5</span>
+                          <span>5</span>
+                        </div>
                       </div>
+                      <div class="vp-hold-row" id="videoPokerHoldGraphic"></div>
                       <div class="machine-hand" id="videoPokerHandGraphic"></div>
-                      <div class="machine-message" id="videoPokerMachineMessage">Hold all five</div>
+                      <div class="vp-play-banner" id="videoPokerMachineMessage">Play 5 Credits</div>
+                      <div class="vp-ledger">
+                        <span><strong>Win</strong> 5</span>
+                        <span><strong>Paid</strong> $35.00</span>
+                        <span><strong>Bet</strong> 5</span>
+                        <span><strong>Cash</strong> $0.00</span>
+                      </div>
                     </div>
                     <div class="machine-buttons" aria-hidden="true">
-                      <span>Bet One</span>
-                      <span>Deal</span>
-                      <span>Draw</span>
+                      <span>Help</span>
+                      <span>More Games</span>
+                      <span>See Pays</span>
+                      <span>$5</span>
+                      <span>Deal / Draw</span>
                       <span>Cash Out</span>
                     </div>
                   </div>
