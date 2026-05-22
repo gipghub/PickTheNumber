@@ -793,7 +793,7 @@
 
 .slot-reference-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin: 12px 0;
 }
@@ -853,6 +853,31 @@
   color: var(--muted);
   font-weight: 700;
   line-height: 1.35;
+}
+
+.slot-reference-panel p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.slot-rule-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.slot-rule-tags span {
+  border: 1px solid rgba(248, 201, 87, 0.44);
+  border-radius: 999px;
+  background: rgba(248, 201, 87, 0.08);
+  color: #fff4ae;
+  padding: 4px 8px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .slot-reels.is-spinning {
