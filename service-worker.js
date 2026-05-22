@@ -1,4 +1,4 @@
-const CACHE_NAME = "pick-the-number-v3";
+const CACHE_NAME = "pick-the-number-v5";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -35,16 +35,15 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request).then((response) => {
+    fetch(request)
+      .then((response) => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         return response;
-      }).catch(() => {
+      })
+      .catch(() => {
         if (request.mode === "navigate") return caches.match("./index.html");
         return caches.match(request);
-      });
-    }),
+      }),
   );
 });

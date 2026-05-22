@@ -196,6 +196,27 @@
                   <span>Blackjack Advisor</span>
                   <small>Common multi-deck basic strategy</small>
                 </div>
+                <div class="casino-visual blackjack-visual" aria-label="Blackjack table preview">
+                  <div class="felt-table blackjack-table">
+                    <div class="table-zone dealer-zone">
+                      <span class="table-label">Dealer</span>
+                      <div class="visual-card-row" id="bjDealerGraphic"></div>
+                    </div>
+                    <div class="table-center-mark">
+                      <span>Blackjack pays 3 to 2</span>
+                      <div class="chip-rack" aria-hidden="true">
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                      </div>
+                    </div>
+                    <div class="table-zone player-zone">
+                      <span class="table-label">Player</span>
+                      <div class="visual-card-row" id="bjPlayerGraphic"></div>
+                      <strong class="action-plaque" id="bjActionGraphic">Hit</strong>
+                    </div>
+                  </div>
+                </div>
                 <div class="form-grid">
                   <div class="field-stack">
                     <label for="bjHandType">Hand type</label>
@@ -224,6 +245,28 @@
                   <span>Jacks or Better Hold Helper</span>
                   <small>High-level 9/6 strategy order</small>
                 </div>
+                <div class="casino-visual video-poker-visual" aria-label="Video poker machine preview">
+                  <div class="video-cabinet">
+                    <div class="machine-marquee">Jacks or Better</div>
+                    <div class="machine-screen">
+                      <div class="paytable-strip">
+                        <span>Royal 4000</span>
+                        <span>Straight Flush 250</span>
+                        <span>4 Kind 125</span>
+                        <span>Full House 45</span>
+                        <span>Flush 30</span>
+                      </div>
+                      <div class="machine-hand" id="videoPokerHandGraphic"></div>
+                      <div class="machine-message" id="videoPokerMachineMessage">Hold all five</div>
+                    </div>
+                    <div class="machine-buttons" aria-hidden="true">
+                      <span>Bet One</span>
+                      <span>Deal</span>
+                      <span>Draw</span>
+                      <span>Cash Out</span>
+                    </div>
+                  </div>
+                </div>
                 <div class="card-picker" id="videoPokerCards"></div>
                 <div class="advice-box" id="videoPokerAdvice"></div>
               </div>
@@ -234,6 +277,29 @@
                 <div class="section-heading">
                   <span>Craps Bet Helper</span>
                   <small>Lower-house-edge choices first</small>
+                </div>
+                <div class="casino-visual craps-visual" aria-label="Craps table preview">
+                  <div class="felt-table craps-table">
+                    <div class="craps-rail">
+                      <span>4</span>
+                      <span>5</span>
+                      <span>Six</span>
+                      <span>8</span>
+                      <span>9</span>
+                      <span>10</span>
+                    </div>
+                    <div class="craps-layout">
+                      <div class="craps-box field-box">Field</div>
+                      <div class="craps-box come-box">Come</div>
+                      <div class="craps-box odds-box">Odds</div>
+                      <div class="craps-box pass-box">Pass Line</div>
+                      <div class="point-puck" id="crapsPointMarker">Off</div>
+                      <div class="dice-pair" aria-hidden="true">
+                        <span class="die">5</span>
+                        <span class="die">2</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="form-grid">
                   <div class="field-stack">
@@ -267,6 +333,22 @@
                   <span>3 Card Poker Play/Fold</span>
                   <small>Queen-six-four threshold</small>
                 </div>
+                <div class="casino-visual three-card-visual" aria-label="3 Card Poker table preview">
+                  <div class="felt-table three-card-table">
+                    <div class="dealer-cards" aria-hidden="true">
+                      <span class="graphic-card back"></span>
+                      <span class="graphic-card back"></span>
+                      <span class="graphic-card back"></span>
+                    </div>
+                    <div class="three-card-bets">
+                      <span>Pair Plus</span>
+                      <span>Ante</span>
+                      <span>Play</span>
+                    </div>
+                    <div class="machine-hand table-hand" id="threeCardHandGraphic"></div>
+                    <strong class="action-plaque" id="threeCardActionGraphic">Play</strong>
+                  </div>
+                </div>
                 <div class="card-picker compact" id="threeCardCards"></div>
                 <div class="advice-box" id="threeCardAdvice"></div>
               </div>
@@ -277,6 +359,25 @@
                 <div class="section-heading">
                   <span>Slots Session Planner</span>
                   <small>Budget, RTP, volatility</small>
+                </div>
+                <div class="casino-visual slots-visual" aria-label="Video slot machine preview">
+                  <div class="slot-machine">
+                    <div class="slot-topper">Lucky Line</div>
+                    <div class="slot-window">
+                      <div class="slot-reels" id="slotReels"></div>
+                      <div class="slot-payline" aria-hidden="true"></div>
+                    </div>
+                    <div class="slot-dashboard">
+                      <span id="slotSpinMeter">100 spins</span>
+                      <span id="slotLossMeter">$6 expected loss</span>
+                      <span id="slotStopMeter">$45 stop</span>
+                    </div>
+                    <div class="slot-button-row" aria-hidden="true">
+                      <span>Max Bet</span>
+                      <span>Spin</span>
+                      <span>Collect</span>
+                    </div>
+                  </div>
                 </div>
                 <div class="form-grid">
                   <div class="field-stack">

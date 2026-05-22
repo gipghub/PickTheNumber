@@ -38,18 +38,30 @@ const elements = {
   overdueNumbers: $("#overdueNumbers"),
   patternList: $("#patternList"),
   blackjackAdvice: $("#blackjackAdvice"),
+  bjDealerGraphic: $("#bjDealerGraphic"),
+  bjPlayerGraphic: $("#bjPlayerGraphic"),
+  bjActionGraphic: $("#bjActionGraphic"),
   bjHandType: $("#bjHandType"),
   bjPlayer: $("#bjPlayer"),
   bjDealer: $("#bjDealer"),
   videoPokerCards: $("#videoPokerCards"),
   videoPokerAdvice: $("#videoPokerAdvice"),
+  videoPokerHandGraphic: $("#videoPokerHandGraphic"),
+  videoPokerMachineMessage: $("#videoPokerMachineMessage"),
   crapsAdvice: $("#crapsAdvice"),
+  crapsPointMarker: $("#crapsPointMarker"),
   crapsPoint: $("#crapsPoint"),
   crapsBankroll: $("#crapsBankroll"),
   crapsUnit: $("#crapsUnit"),
   threeCardCards: $("#threeCardCards"),
   threeCardAdvice: $("#threeCardAdvice"),
+  threeCardHandGraphic: $("#threeCardHandGraphic"),
+  threeCardActionGraphic: $("#threeCardActionGraphic"),
   slotsAdvice: $("#slotsAdvice"),
+  slotReels: $("#slotReels"),
+  slotSpinMeter: $("#slotSpinMeter"),
+  slotLossMeter: $("#slotLossMeter"),
+  slotStopMeter: $("#slotStopMeter"),
   slotBankroll: $("#slotBankroll"),
   slotBet: $("#slotBet"),
   slotRtp: $("#slotRtp"),
@@ -361,6 +373,49 @@ function dealerValue(card) {
 function updateBlackjackAdvice() {
   const advice = Core.blackjackDecision(elements.bjHandType.value, elements.bjPlayer.value, dealerValue(elements.bjDealer.value));
   elements.blackjackAdvice.innerHTML = `<strong>${advice.action}</strong><br>${advice.reason}`;
+  renderBlackjackVisual(advice);
+}
+
+function renderBlackjackVisual(advice) {
+  renderGraphicCards(elements.bjDealerGraphic, [
+    { rank: elements.bjDealer.value, suit: "♣" },
+    { back: true },
+  ]);
+  renderGraphicCards(elements.bjPlayerGraphic, blackjackPlayerCards(elements.bjHandType.value, elements.bjPlayer.value));
+  elements.bjActionGraphic.textContent = advice.action.split(",")[0];
+}
+
+function blackjackPlayerCards(type, value) {
+  if (type === "pair") {
+    return [
+      { rank: value, suit: "♥" },
+      { rank: value, suit: "♠" },
+    ];
+  }
+
+  const total = Number(value);
+  if (type === "soft") {
+    return [
+      { rank: "A", suit: "♥" },
+      { rank: rankFromPip(Math.min(10, Math.max(2, total - 11))), suit: "♠" },
+    ];
+  }
+
+  if (total <= 11) {
+    return [
+      { rank: rankFromPip(Math.max(2, total - 2)), suit: "♦" },
+      { rank: "2", suit: "♣" },
+    ];
+  }
+
+  return [
+    { rank: "10", suit: "♦" },
+    { rank: rankFromPip(Math.max(2, Math.min(10, total - 10))), suit: "♠" },
+  ];
+}
+
+function rankFromPip(value) {
+  return value === 10 ? "10" : String(value);
 }
 
 function setupCardPickers() {
@@ -412,13 +467,16 @@ function getCards(container, prefix) {
 
 function updateVideoPokerAdvice() {
   const cards = getCards(elements.videoPokerCards, "vp");
+  renderGraphicCards(elements.videoPokerHandGraphic, cards);
   if (Core.hasDuplicateCards(cards)) {
     elements.videoPokerAdvice.innerHTML =
       "<strong>Choose five unique cards.</strong><br>The same card cannot appear twice in a real hand.";
+    elements.videoPokerMachineMessage.textContent = "Duplicate card";
     return;
   }
   const result = Core.videoPokerHold(cards);
   elements.videoPokerAdvice.innerHTML = `<strong>${result.title}</strong><br>${result.detail}`;
+  elements.videoPokerMachineMessage.textContent = result.title;
 }
 
 function setupCraps() {
@@ -431,17 +489,22 @@ function setupCraps() {
 function updateCrapsAdvice() {
   const plan = Core.crapsPlan(elements.crapsPoint.value, elements.crapsBankroll.value, elements.crapsUnit.value);
   elements.crapsAdvice.innerHTML = `<strong>${plan.maxUnits} base units available.</strong><br>${plan.detail}<br>Suggested stop-loss: ${plan.stopLossUnits} units.`;
+  elements.crapsPointMarker.textContent = elements.crapsPoint.value === "none" ? "Off" : elements.crapsPoint.value;
+  elements.crapsPointMarker.classList.toggle("is-on", elements.crapsPoint.value !== "none");
 }
 
 function updateThreeCardAdvice() {
   const cards = getCards(elements.threeCardCards, "tc");
+  renderGraphicCards(elements.threeCardHandGraphic, cards);
   if (Core.hasDuplicateCards(cards)) {
     elements.threeCardAdvice.innerHTML =
       "<strong>Choose three unique cards.</strong><br>The same card cannot appear twice in a real hand.";
+    elements.threeCardActionGraphic.textContent = "Check";
     return;
   }
   const result = Core.threeCardDecision(cards);
   elements.threeCardAdvice.innerHTML = `<strong>${result.action}.</strong><br>${result.detail}`;
+  elements.threeCardActionGraphic.textContent = result.action;
 }
 
 function setupSlots() {
@@ -454,6 +517,41 @@ function setupSlots() {
 function updateSlotsAdvice() {
   const plan = Core.slotsPlan(elements.slotBankroll.value, elements.slotBet.value, elements.slotRtp.value, elements.slotVolatility.value);
   elements.slotsAdvice.innerHTML = `<strong>${plan.spins} spins before the bankroll is gone.</strong><br>At ${Number(elements.slotRtp.value).toFixed(1)}% RTP, the long-run expected loss over that many spins is about $${plan.expectedLoss.toFixed(2)}. For ${elements.slotVolatility.value} volatility, consider a stop-loss near $${plan.stopLoss.toFixed(0)} and a win goal near $${plan.winGoal.toFixed(0)}.`;
+  renderSlotVisual(plan);
+}
+
+function renderGraphicCards(container, cards) {
+  container.innerHTML = cards.map(renderGraphicCard).join("");
+}
+
+function renderGraphicCard(card) {
+  if (card.back) return '<span class="graphic-card back"></span>';
+  const isRed = card.suit === "♥" || card.suit === "♦";
+  return `<span class="graphic-card ${isRed ? "red" : ""}"><span>${card.rank}</span><small>${card.suit}</small></span>`;
+}
+
+function renderSlotVisual(plan) {
+  const volatility = elements.slotVolatility.value;
+  const symbolSets = {
+    low: ["Cherry", "Bar", "Bell", "Bar", "Seven"],
+    medium: ["Cherry", "Bell", "Bar", "Seven", "Wild"],
+    high: ["Seven", "Wild", "Bonus", "Diamond", "Jackpot"],
+  };
+  const symbols = symbolSets[volatility] || symbolSets.medium;
+  const seed =
+    Number(elements.slotBankroll.value) * 3 +
+    Number(elements.slotBet.value) * 19 +
+    Number(elements.slotRtp.value) * 11 +
+    volatility.length;
+
+  elements.slotReels.innerHTML = Array.from({ length: 5 }, (_, index) => {
+    const label = symbols[Math.abs(Math.floor(seed + index * 2)) % symbols.length];
+    const tone = index % 3 === 0 ? "red" : index % 3 === 1 ? "gold" : "blue";
+    return `<span class="slot-reel ${tone}">${label}</span>`;
+  }).join("");
+  elements.slotSpinMeter.textContent = `${plan.spins} spins`;
+  elements.slotLossMeter.textContent = `$${plan.expectedLoss.toFixed(2)} expected loss`;
+  elements.slotStopMeter.textContent = `$${plan.stopLoss.toFixed(0)} stop`;
 }
 
 function setupBankroll() {
