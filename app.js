@@ -72,6 +72,29 @@ const SLOT_POTS = {
     bonusKeys: ["hoopJackpot", "ringChase"],
   },
 };
+const CRAPS_BET_LABELS = {
+  passLine: "Pass Line",
+  dontPass: "Don't Pass",
+  dontCome: "Don't Come",
+  come: "Come",
+  field: "Field",
+  big6: "Big 6",
+  big8: "Big 8",
+  place4: "Place 4",
+  place5: "Place 5",
+  place6: "Place 6",
+  place8: "Place 8",
+  place9: "Place 9",
+  place10: "Place 10",
+  hardways: "Hardways",
+  hard8: "Hard 8",
+  anySeven: "Any 7",
+  craps3: "Craps 3",
+  aces: "Aces",
+  boxcars: "Boxcars",
+  yo: "Yo 11",
+  anyCraps: "Any Craps",
+};
 
 const state = {
   db: null,
@@ -79,6 +102,8 @@ const state = {
   draws: [],
   deferredInstallPrompt: null,
   videoPokerHeldIndexes: null,
+  crapsBets: {},
+  crapsBetAnchors: {},
   slotSpinSeed: 0,
   slotSpinning: false,
   slotVisibleSymbols: [],
@@ -148,6 +173,7 @@ const elements = {
   crapsBankroll: $("#crapsBankroll"),
   crapsUnit: $("#crapsUnit"),
   crapsRollButton: $("#crapsRollButton"),
+  crapsClearBetsButton: $("#crapsClearBetsButton"),
   threeCardCards: $("#threeCardCards"),
   threeCardAdvice: $("#threeCardAdvice"),
   threeCardHandGraphic: $("#threeCardHandGraphic"),
@@ -884,6 +910,14 @@ function mostCommon(cards, key) {
 }
 
 function setupCraps() {
+  elements.crapsTableGraphic.querySelectorAll("[data-craps-bet]").forEach((zone) => {
+    const label = CRAPS_BET_LABELS[zone.dataset.crapsBet] || "craps bet";
+    const matchingZones = Array.from(elements.crapsTableGraphic.querySelectorAll(`[data-craps-bet="${zone.dataset.crapsBet}"]`));
+    zone.dataset.crapsBetZone = `${zone.dataset.crapsBet}-${matchingZones.indexOf(zone)}`;
+    zone.setAttribute("role", "button");
+    zone.setAttribute("tabindex", "0");
+    zone.setAttribute("aria-label", `Place chip on ${label}`);
+  });
   elements.crapsPoint.addEventListener("input", () => {
     playGameSound("craps", "dice");
     updateCrapsAdvice();
@@ -895,16 +929,81 @@ function setupCraps() {
     }),
   );
   elements.crapsRollButton.addEventListener("click", () => rollCrapsScenario());
+  elements.crapsClearBetsButton.addEventListener("click", () => clearCrapsBets());
+  elements.crapsTableGraphic.addEventListener("click", (event) => {
+    const betZone = event.target.closest("[data-craps-bet]");
+    if (!betZone || !elements.crapsTableGraphic.contains(betZone)) return;
+    placeCrapsBet(betZone.dataset.crapsBet, betZone);
+  });
+  elements.crapsTableGraphic.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const betZone = event.target.closest("[data-craps-bet]");
+    if (!betZone || !elements.crapsTableGraphic.contains(betZone)) return;
+    event.preventDefault();
+    placeCrapsBet(betZone.dataset.crapsBet, betZone);
+  });
   updateCrapsAdvice();
 }
 
 function updateCrapsAdvice(rollNote = "") {
   const plan = Core.crapsPlan(elements.crapsPoint.value, elements.crapsBankroll.value, elements.crapsUnit.value);
-  elements.crapsAdvice.innerHTML = `<strong>${plan.maxUnits} base units available.</strong><br>${rollNote ? `${rollNote}<br>` : ""}${plan.detail}<br>Suggested stop-loss: ${plan.stopLossUnits} units.`;
+  const betSummary = formatCrapsBetSummary();
+  elements.crapsAdvice.innerHTML = `<strong>${plan.maxUnits} base units available.</strong><br>${rollNote ? `${rollNote}<br>` : ""}${betSummary ? `${betSummary}<br>` : ""}${plan.detail}<br>Suggested stop-loss: ${plan.stopLossUnits} units.`;
   elements.crapsPointMarker.textContent = elements.crapsPoint.value === "none" ? "Off" : elements.crapsPoint.value;
   elements.crapsPointMarker.classList.toggle("is-on", elements.crapsPoint.value !== "none");
   elements.crapsTableGraphic.dataset.point = elements.crapsPoint.value;
   elements.crapsActionChip.querySelector("strong").textContent = plan.maxUnits;
+}
+
+function placeCrapsBet(betKey, betZone) {
+  const unit = Math.max(1, Number(elements.crapsUnit.value) || 1);
+  const currentTotal = Object.values(state.crapsBets).reduce((sum, value) => sum + value, 0);
+  const bankroll = Math.max(0, Number(elements.crapsBankroll.value) || 0);
+  if (currentTotal + unit > bankroll) {
+    updateCrapsAdvice(`Bankroll limit reached. Clear bets or raise the session bankroll to place more chips.`);
+    return;
+  }
+
+  state.crapsBets[betKey] = (state.crapsBets[betKey] || 0) + unit;
+  state.crapsBetAnchors[betKey] = betZone?.dataset.crapsBetZone || state.crapsBetAnchors[betKey];
+  renderCrapsBets();
+  playGameSound("blackjack", "chip");
+  updateCrapsAdvice(`Placed ${formatMoney(unit)} on ${CRAPS_BET_LABELS[betKey] || "the layout"}.`);
+}
+
+function clearCrapsBets() {
+  state.crapsBets = {};
+  state.crapsBetAnchors = {};
+  renderCrapsBets();
+  playGameSound("ui", "tap");
+  updateCrapsAdvice("Cleared the table layout.");
+}
+
+function renderCrapsBets() {
+  elements.crapsTableGraphic.querySelectorAll(".craps-bet-chip").forEach((chip) => chip.remove());
+  Object.entries(state.crapsBets).forEach(([betKey, amount]) => {
+    if (amount <= 0) return;
+    const zones = elements.crapsTableGraphic.querySelectorAll(`[data-craps-bet="${betKey}"]`);
+    const targetZone =
+      elements.crapsTableGraphic.querySelector(`[data-craps-bet-zone="${state.crapsBetAnchors[betKey]}"]`) || zones[0];
+    if (!targetZone) return;
+    const chip = document.createElement("span");
+    chip.className = "craps-bet-chip";
+    chip.textContent = formatMoney(amount);
+    chip.setAttribute("aria-label", `${formatMoney(amount)} on ${CRAPS_BET_LABELS[betKey] || "bet"}`);
+    targetZone.appendChild(chip);
+  });
+}
+
+function formatCrapsBetSummary() {
+  const entries = Object.entries(state.crapsBets).filter(([, amount]) => amount > 0);
+  if (!entries.length) return "Tap the craps layout to place one base-unit chip on a bet.";
+  const total = entries.reduce((sum, [, amount]) => sum + amount, 0);
+  const labels = entries
+    .slice(0, 3)
+    .map(([betKey, amount]) => `${CRAPS_BET_LABELS[betKey] || betKey} ${formatMoney(amount)}`)
+    .join(" · ");
+  return `On table: ${formatMoney(total)} (${labels}${entries.length > 3 ? " · more" : ""}).`;
 }
 
 function rollCrapsScenario() {
