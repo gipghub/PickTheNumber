@@ -1043,19 +1043,487 @@ input {
 }
 
 .die {
+  --pip-color: #101820;
+  --pip-size: 13%;
   width: 36px;
   height: 36px;
   display: grid;
   place-items: center;
   border-radius: 7px;
-  background: #fff;
+  background-color: #fff;
+  background-image: var(--dice-pips);
   color: #101820;
+  font-size: 0;
   font-weight: 900;
   transform: rotate(-8deg);
 }
 
 .die + .die {
   transform: rotate(12deg);
+}
+
+.dice-icon {
+  --pip-color: #272142;
+  --pip-size: 14%;
+  width: 1.05em;
+  height: 1.05em;
+  display: inline-block;
+  border-radius: 0.18em;
+  background-color: #f8f7f0;
+  background-image: var(--dice-pips);
+  box-shadow: inset 0 0 0 0.08em rgba(39, 33, 66, 0.22);
+}
+
+.die-one {
+  --dice-pips: radial-gradient(circle at 50% 50%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%));
+}
+
+.die-two {
+  --dice-pips:
+    radial-gradient(circle at 30% 30%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 70% 70%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%));
+}
+
+.die-three {
+  --dice-pips:
+    radial-gradient(circle at 30% 30%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 50% 50%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 70% 70%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%));
+}
+
+.die-four {
+  --dice-pips:
+    radial-gradient(circle at 30% 30%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 70% 30%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 30% 70%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 70% 70%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%));
+}
+
+.die-five {
+  --dice-pips:
+    radial-gradient(circle at 30% 30%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 70% 30%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 50% 50%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 30% 70%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 70% 70%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%));
+}
+
+.die-six {
+  --dice-pips:
+    radial-gradient(circle at 30% 25%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 70% 25%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 30% 50%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 70% 50%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 30% 75%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%)),
+    radial-gradient(circle at 70% 75%, var(--pip-color) 0 var(--pip-size), transparent calc(var(--pip-size) + 1%));
+}
+
+.craps-map {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 0.38fr);
+  gap: 16px;
+  min-height: 540px;
+  padding: 86px 26px 46px 42px;
+  border: 14px solid #8a5208;
+  border-radius: 110px;
+  background:
+    radial-gradient(circle at 20% 36%, rgba(255, 255, 255, 0.1), transparent 22%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0 2px, transparent 2px 28px),
+    #08a675;
+  color: #fff;
+}
+
+.craps-table-title {
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  display: grid;
+  justify-items: center;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.craps-table-title strong {
+  color: #fff;
+  font-size: clamp(1.9rem, 4.4vw, 3.4rem);
+  line-height: 0.95;
+  text-shadow:
+    3px 3px 0 #272142,
+    -1px -1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.craps-table-title span {
+  color: #d6fff3;
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.craps-main-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-rows: 74px 100px 104px 116px;
+  min-width: 0;
+}
+
+.craps-pass-rail.left {
+  position: absolute;
+  left: 18px;
+  top: 142px;
+  bottom: 82px;
+  z-index: 2;
+  width: 70px;
+  display: grid;
+  place-items: center;
+  border: 4px solid #fff;
+  border-right: 0;
+  border-radius: 70px 0 0 70px;
+  color: #fff;
+  font-size: clamp(1.1rem, 2vw, 1.8rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.craps-side-bar,
+.craps-place-row,
+.craps-come-area,
+.craps-field-area,
+.craps-lower-row > div {
+  border: 3px solid #f3fff8;
+  color: #fff;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dont-pass-left {
+  grid-column: 1;
+  grid-row: 1 / 5;
+  display: grid;
+  place-items: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 1rem;
+}
+
+.dont-pass-top {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 0 14px;
+}
+
+.mini-dice {
+  display: inline-flex;
+  gap: 0.28em;
+  color: #272142;
+  font-size: 1.4rem;
+  letter-spacing: 0;
+}
+
+.craps-place-row {
+  position: relative;
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  border-top: 0;
+}
+
+.place-number {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  border-right: 3px solid #f3fff8;
+  color: #ffd75b;
+  font-size: clamp(1.45rem, 4vw, 2.9rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.place-number:last-of-type {
+  border-right: 0;
+}
+
+.place-number.angled {
+  transform: rotate(-24deg);
+}
+
+.craps-map .point-puck {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  z-index: 4;
+  width: 48px;
+  height: 48px;
+  transform: translateY(-50%);
+  border: 5px solid #101820;
+  background: #fff;
+  color: #101820;
+  font-size: 0.72rem;
+}
+
+.craps-map[data-point="none"] .point-puck {
+  border-color: #fff;
+  background: #101820;
+  color: #fff;
+}
+
+.craps-map[data-point="4"] .point-puck {
+  left: calc(100% / 12);
+  right: auto;
+  transform: translate(-50%, -50%);
+}
+
+.craps-map[data-point="5"] .point-puck {
+  left: calc(100% / 12 * 3);
+  right: auto;
+  transform: translate(-50%, -50%);
+}
+
+.craps-map[data-point="6"] .point-puck {
+  left: calc(100% / 12 * 5);
+  right: auto;
+  transform: translate(-50%, -50%);
+}
+
+.craps-map[data-point="8"] .point-puck {
+  left: calc(100% / 12 * 7);
+  right: auto;
+  transform: translate(-50%, -50%);
+}
+
+.craps-map[data-point="9"] .point-puck {
+  left: calc(100% / 12 * 9);
+  right: auto;
+  transform: translate(-50%, -50%);
+}
+
+.craps-map[data-point="10"] .point-puck {
+  left: calc(100% / 12 * 11);
+  right: auto;
+  transform: translate(-50%, -50%);
+}
+
+.craps-come-area {
+  grid-column: 2;
+  grid-row: 3;
+  display: grid;
+  place-items: center;
+  border-top: 0;
+  color: #fff;
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  line-height: 1;
+  text-shadow:
+    4px 4px 0 #272142,
+    -2px -2px 0 #fff;
+}
+
+.craps-field-area {
+  grid-column: 2;
+  grid-row: 4;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  justify-items: center;
+  border-top: 0;
+  padding: 0 16px;
+  color: #ffd75b;
+}
+
+.craps-field-area strong {
+  color: #ffd75b;
+  font-size: clamp(1.2rem, 3vw, 2.05rem);
+}
+
+.field-circle {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #ffd75b;
+  border-radius: 50%;
+  font-size: 1.3rem;
+}
+
+.craps-lower-row {
+  grid-column: 1 / 3;
+  display: grid;
+  grid-template-columns: 2fr 3.8fr;
+  grid-template-rows: 62px 62px;
+}
+
+.craps-lower-row > div {
+  display: grid;
+  place-items: center;
+  border-top: 0;
+}
+
+.big-bets {
+  grid-row: 1 / 3;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-right: 0;
+}
+
+.big-bets span {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: clamp(1.4rem, 3vw, 2.4rem);
+  text-shadow:
+    3px 3px 0 #272142,
+    -1px -1px 0 #fff;
+}
+
+.big-bets span:first-child {
+  transform: rotate(-36deg);
+}
+
+.big-bets span:last-child {
+  transform: rotate(36deg);
+}
+
+.dont-pass-bottom,
+.pass-line-bottom {
+  grid-column: 2;
+  color: #fff;
+  font-size: clamp(1rem, 2.4vw, 1.75rem);
+}
+
+.pass-line-bottom {
+  font-size: clamp(1.2rem, 3vw, 2rem);
+}
+
+.craps-map .dice-pair {
+  right: 18px;
+  bottom: 24px;
+}
+
+.craps-prop-layout {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.craps-prop-layout h3 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2.1rem, 5vw, 3.5rem);
+  line-height: 0.9;
+  text-transform: uppercase;
+  text-shadow:
+    4px 4px 0 #272142,
+    -2px -2px 0 #fff;
+}
+
+.craps-prop-layout p {
+  margin: 0 0 8px;
+  color: #e6fff8;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.prop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 3px solid #fff;
+  border-radius: 28px 28px 8px 8px;
+  overflow: hidden;
+}
+
+.prop-grid span {
+  min-height: 58px;
+  display: grid;
+  place-items: center;
+  border-right: 3px solid #fff;
+  border-bottom: 3px solid #fff;
+  font-size: 1.35rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.prop-grid span:nth-child(3n),
+.prop-grid span:last-child {
+  border-right: 0;
+}
+
+.prop-grid span:nth-last-child(-n + 1) {
+  border-bottom: 0;
+}
+
+.prop-grid small {
+  display: block;
+  font-size: 0.72rem;
+}
+
+.dice-combo {
+  display: inline-flex;
+  gap: 0.34em;
+  font-size: 1.12rem;
+  line-height: 1;
+}
+
+.prop-grid .prop-wide {
+  grid-column: 1 / -1;
+  min-height: 38px;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.craps-chip-column {
+  position: absolute;
+  left: calc(100% - 330px);
+  top: 224px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.craps-chip-column span,
+.craps-action-chip {
+  display: grid;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 900;
+}
+
+.craps-chip-column span {
+  width: 32px;
+  height: 32px;
+  background: rgba(8, 166, 117, 0.92);
+}
+
+.craps-action-chip {
+  position: absolute;
+  right: 36px;
+  bottom: 24px;
+  width: 72px;
+  height: 72px;
+  border-color: #ffd75b;
+  background: #272142;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.craps-action-chip strong {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.craps-action-chip span {
+  font-size: 0.6rem;
 }
 
 .three-card-table {
@@ -1743,6 +2211,154 @@ input {
   .dice-pair {
     right: 16px;
     bottom: 12px;
+  }
+
+  .craps-map {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: 12px;
+    padding: 72px 14px 18px;
+    border-width: 8px;
+    border-radius: 24px;
+  }
+
+  .craps-table-title {
+    top: 14px;
+    width: calc(100% - 28px);
+  }
+
+  .craps-table-title strong {
+    font-size: 1.5rem;
+  }
+
+  .craps-table-title span,
+  .craps-pass-rail.left,
+  .craps-chip-column {
+    display: none;
+  }
+
+  .craps-main-layout {
+    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-rows: 50px 68px 72px auto;
+  }
+
+  .craps-side-bar,
+  .craps-place-row,
+  .craps-come-area,
+  .craps-field-area,
+  .craps-lower-row > div {
+    border-width: 3px;
+  }
+
+  .dont-pass-left {
+    font-size: 0.65rem;
+  }
+
+  .dont-pass-top {
+    gap: 6px;
+    padding: 0 7px;
+    font-size: 0.7rem;
+  }
+
+  .mini-dice {
+    font-size: 0.9rem;
+  }
+
+  .place-number {
+    font-size: 1.1rem;
+  }
+
+  .craps-map .point-puck {
+    width: 34px;
+    height: 34px;
+    border-width: 3px;
+    font-size: 0.55rem;
+  }
+
+  .craps-come-area {
+    font-size: 1.7rem;
+  }
+
+  .craps-field-area {
+    grid-template-columns: auto 1fr auto;
+    gap: 6px;
+    padding: 0 6px;
+    font-size: 0.68rem;
+  }
+
+  .craps-field-area strong {
+    font-size: 1rem;
+  }
+
+  .field-circle {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+  }
+
+  .field-circle:last-child {
+    grid-column: 3;
+  }
+
+  .craps-lower-row {
+    grid-template-columns: 1fr;
+    grid-template-rows: 58px 44px 48px;
+  }
+
+  .big-bets {
+    grid-row: auto;
+    border-right: 3px solid #f3fff8;
+  }
+
+  .big-bets span {
+    font-size: 1rem;
+  }
+
+  .dont-pass-bottom,
+  .pass-line-bottom {
+    grid-column: auto;
+    font-size: 0.82rem;
+  }
+
+  .craps-prop-layout {
+    gap: 6px;
+  }
+
+  .craps-prop-layout h3 {
+    font-size: 1.75rem;
+  }
+
+  .craps-prop-layout p {
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+  }
+
+  .prop-grid {
+    border-radius: 20px 20px 8px 8px;
+  }
+
+  .prop-grid span {
+    min-height: 42px;
+    font-size: 0.95rem;
+  }
+
+  .prop-grid .prop-wide {
+    min-height: 32px;
+    font-size: 0.76rem;
+  }
+
+  .craps-action-chip {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    justify-self: center;
+    width: 58px;
+    height: 58px;
+  }
+
+  .craps-map .dice-pair {
+    right: 12px;
+    bottom: 16px;
   }
 
   .slot-window {

@@ -50,7 +50,9 @@ const elements = {
   videoPokerHoldGraphic: $("#videoPokerHoldGraphic"),
   videoPokerMachineMessage: $("#videoPokerMachineMessage"),
   crapsAdvice: $("#crapsAdvice"),
+  crapsTableGraphic: $("#crapsTableGraphic"),
   crapsPointMarker: $("#crapsPointMarker"),
+  crapsActionChip: $("#crapsActionChip"),
   crapsPoint: $("#crapsPoint"),
   crapsBankroll: $("#crapsBankroll"),
   crapsUnit: $("#crapsUnit"),
@@ -550,6 +552,8 @@ function updateCrapsAdvice() {
   elements.crapsAdvice.innerHTML = `<strong>${plan.maxUnits} base units available.</strong><br>${plan.detail}<br>Suggested stop-loss: ${plan.stopLossUnits} units.`;
   elements.crapsPointMarker.textContent = elements.crapsPoint.value === "none" ? "Off" : elements.crapsPoint.value;
   elements.crapsPointMarker.classList.toggle("is-on", elements.crapsPoint.value !== "none");
+  elements.crapsTableGraphic.dataset.point = elements.crapsPoint.value;
+  elements.crapsActionChip.querySelector("strong").textContent = plan.maxUnits;
 }
 
 function updateThreeCardAdvice() {

@@ -360,25 +360,117 @@
                   <small>Lower-house-edge choices first</small>
                 </div>
                 <div class="casino-visual craps-visual" aria-label="Craps table preview">
-                  <div class="felt-table craps-table">
-                    <div class="craps-rail">
-                      <span>4</span>
-                      <span>5</span>
-                      <span>Six</span>
-                      <span>8</span>
-                      <span>9</span>
-                      <span>10</span>
-                    </div>
-                    <div class="craps-layout">
-                      <div class="craps-box field-box">Field</div>
-                      <div class="craps-box come-box">Come</div>
-                      <div class="craps-box odds-box">Odds</div>
-                      <div class="craps-box pass-box">Pass Line</div>
-                      <div class="point-puck" id="crapsPointMarker">Off</div>
-                      <div class="dice-pair" aria-hidden="true">
-                        <span class="die">5</span>
-                        <span class="die">2</span>
+                  <div class="felt-table craps-table craps-map" id="crapsTableGraphic" data-point="none">
+                    <div class="craps-pass-rail left">Pass Line</div>
+                    <div class="craps-main-layout">
+                      <div class="craps-side-bar dont-pass-left">Don't Pass Bar</div>
+                      <div class="craps-side-bar dont-pass-top">
+                        Don't Come Bar
+                        <span class="mini-dice" aria-hidden="true">
+                          <i class="dice-icon die-four"></i>
+                          <i class="dice-icon die-four"></i>
+                        </span>
                       </div>
+                      <div class="craps-place-row">
+                        <div class="place-number" data-number="4">4</div>
+                        <div class="place-number" data-number="5">5</div>
+                        <div class="place-number angled" data-number="6">Six</div>
+                        <div class="place-number" data-number="8">8</div>
+                        <div class="place-number angled" data-number="9">Nine</div>
+                        <div class="place-number" data-number="10">10</div>
+                        <div class="point-puck" id="crapsPointMarker">Off</div>
+                      </div>
+                      <div class="craps-come-area">Come</div>
+                      <div class="craps-field-area">
+                        <span class="field-circle">2</span>
+                        <strong>Field</strong>
+                        <span>3 · 4 · 9 · 10 · 11</span>
+                        <span class="field-circle">12</span>
+                      </div>
+                      <div class="craps-lower-row">
+                        <div class="big-bets">
+                          <span>Big 6</span>
+                          <span>Big 8</span>
+                        </div>
+                        <div class="dont-pass-bottom">
+                          Don't Pass Bar
+                          <span class="mini-dice" aria-hidden="true">
+                            <i class="dice-icon die-five"></i>
+                            <i class="dice-icon die-five"></i>
+                          </span>
+                        </div>
+                        <div class="pass-line-bottom">Pass Line</div>
+                      </div>
+                      <div class="dice-pair" aria-hidden="true">
+                        <span class="die die-five"></span>
+                        <span class="die die-two"></span>
+                      </div>
+                    </div>
+                    <aside class="craps-prop-layout">
+                      <h3>Craps</h3>
+                      <p>Dealer & Players</p>
+                      <div class="prop-grid">
+                        <span class="prop-wide">5 to 1</span>
+                        <span>
+                          <b class="dice-combo" aria-hidden="true">
+                            <i class="dice-icon die-three"></i>
+                            <i class="dice-icon die-four"></i>
+                          </b>
+                          <small>10 to 1</small>
+                        </span>
+                        <span>
+                          <b class="dice-combo" aria-hidden="true">
+                            <i class="dice-icon die-four"></i>
+                            <i class="dice-icon die-four"></i>
+                          </b>
+                          <small>8 to 1</small>
+                        </span>
+                        <span>
+                          <b class="dice-combo" aria-hidden="true">
+                            <i class="dice-icon die-one"></i>
+                            <i class="dice-icon die-two"></i>
+                          </b>
+                          <small>16 to 1</small>
+                        </span>
+                        <span>
+                          <b class="dice-combo" aria-hidden="true">
+                            <i class="dice-icon die-one"></i>
+                            <i class="dice-icon die-one"></i>
+                          </b>
+                          <small>31 to 1</small>
+                        </span>
+                        <span>
+                          <b class="dice-combo" aria-hidden="true">
+                            <i class="dice-icon die-six"></i>
+                            <i class="dice-icon die-six"></i>
+                          </b>
+                          <small>31 to 1</small>
+                        </span>
+                        <span>
+                          <b class="dice-combo" aria-hidden="true">
+                            <i class="dice-icon die-five"></i>
+                            <i class="dice-icon die-six"></i>
+                          </b>
+                          <small>16 to 1</small>
+                        </span>
+                        <span class="prop-wide">Any Craps · 8 to 1</span>
+                      </div>
+                    </aside>
+                    <div class="craps-chip-column" aria-hidden="true">
+                      <span>E</span>
+                      <span>C</span>
+                      <span>E</span>
+                      <span>C</span>
+                      <span>E</span>
+                      <span>C</span>
+                    </div>
+                    <div class="craps-table-title">
+                      <strong>How to play craps</strong>
+                      <span>Pass line, come, field, odds, and proposition map</span>
+                    </div>
+                    <div class="craps-action-chip" id="crapsActionChip">
+                      <strong>20</strong>
+                      <span>units</span>
                     </div>
                   </div>
                 </div>
