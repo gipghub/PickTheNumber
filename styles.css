@@ -317,14 +317,14 @@
   overflow: hidden;
 }
 
-.slot-pot b::after {
-  content: attr(data-count);
+.slot-pot-value {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
   color: #fff;
   font-size: 0.62rem;
+  font-style: normal;
   font-weight: 900;
   text-shadow: 0 1px 0 #07111f;
 }
@@ -371,6 +371,220 @@
   text-align: center;
   text-transform: uppercase;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.26);
+}
+
+.slot-bonus-screen {
+  position: absolute;
+  left: 50%;
+  top: 246px;
+  z-index: 9;
+  width: min(660px, var(--slot-stage-width));
+  min-height: 270px;
+  border: 4px solid #f8c957;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 20% 22%, rgba(248, 201, 87, 0.32), transparent 24%),
+    radial-gradient(circle at 88% 18%, rgba(114, 226, 255, 0.26), transparent 28%),
+    linear-gradient(135deg, rgba(6, 24, 61, 0.96), rgba(9, 56, 137, 0.94)),
+    #07111f;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.16),
+    0 18px 36px rgba(0, 0, 0, 0.52),
+    0 0 34px rgba(248, 201, 87, 0.38);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) scale(0.94);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.slot-bonus-screen[hidden] {
+  display: none;
+}
+
+.slot-bonus-screen.is-open {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.slot-bonus-court {
+  position: relative;
+  min-height: 262px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  grid-template-areas:
+    "copy icon"
+    "score icon"
+    "balls icon"
+    "extra extra";
+  gap: 12px;
+  align-content: center;
+  overflow: hidden;
+  padding: 22px;
+}
+
+.slot-bonus-court::before {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border: 3px solid rgba(255, 255, 255, 0.36);
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, transparent calc(50% - 2px), rgba(255, 255, 255, 0.26) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 2px)),
+    radial-gradient(circle at 50% 50%, transparent 0 44px, rgba(255, 255, 255, 0.24) 45px 48px, transparent 49px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent);
+  pointer-events: none;
+}
+
+.slot-bonus-copy,
+.slot-bonus-scoreboard,
+.slot-bonus-ball-row,
+.slot-bonus-court em,
+.slot-bonus-court img,
+.slot-bonus-hoop {
+  position: relative;
+  z-index: 2;
+}
+
+.slot-bonus-copy {
+  grid-area: copy;
+}
+
+.slot-bonus-copy small {
+  display: block;
+  color: #7de8ff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.slot-bonus-copy strong {
+  display: block;
+  color: #fff4ae;
+  font-size: clamp(1.5rem, 4vw, 2.7rem);
+  line-height: 0.96;
+  text-transform: uppercase;
+  text-shadow:
+    0 3px 0 #8b2d14,
+    0 0 18px rgba(248, 201, 87, 0.72);
+}
+
+.slot-bonus-copy p {
+  max-width: 34ch;
+  margin: 7px 0 0;
+  color: #e9faff;
+  font-weight: 800;
+}
+
+.slot-bonus-scoreboard {
+  grid-area: score;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  width: min(100%, 360px);
+  border: 2px solid rgba(114, 226, 255, 0.78);
+  border-radius: 12px;
+  background: rgba(2, 8, 23, 0.76);
+  padding: 10px 12px;
+}
+
+.slot-bonus-scoreboard span,
+.slot-bonus-scoreboard b {
+  color: #9ff1ff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.slot-bonus-scoreboard strong {
+  color: #f8c957;
+  font-size: 1.7rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.slot-bonus-ball-row {
+  grid-area: balls;
+  display: flex;
+  gap: 8px;
+}
+
+.slot-bonus-ball-row span {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(90deg, transparent 46%, rgba(94, 34, 10, 0.42) 47% 53%, transparent 54%),
+    linear-gradient(0deg, transparent 46%, rgba(94, 34, 10, 0.42) 47% 53%, transparent 54%),
+    radial-gradient(circle at 35% 30%, #fff2b3, #f07924 52%, #9c2f15);
+  opacity: 0.45;
+}
+
+.slot-bonus-ball-row span.made {
+  opacity: 1;
+  box-shadow: 0 0 14px rgba(248, 201, 87, 0.78);
+}
+
+.slot-bonus-court img {
+  grid-area: icon;
+  align-self: center;
+  justify-self: center;
+  width: min(132px, 100%);
+  height: auto;
+  filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.36));
+}
+
+.slot-bonus-court em {
+  grid-area: extra;
+  justify-self: start;
+  color: #fff4ae;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.slot-bonus-hoop {
+  position: absolute;
+  right: 124px;
+  top: 28px;
+  width: 78px;
+  height: 58px;
+  border: 5px solid #fff;
+  border-bottom: 0;
+  border-radius: 50% 50% 0 0;
+  opacity: 0.7;
+}
+
+.slot-bonus-hoop span {
+  position: absolute;
+  left: 50%;
+  bottom: -18px;
+  width: 82px;
+  height: 22px;
+  border: 5px solid #ef6728;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.slot-bonus-screen.red {
+  border-color: #ff6a3a;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.16),
+    0 18px 36px rgba(0, 0, 0, 0.52),
+    0 0 34px rgba(255, 89, 48, 0.42);
+}
+
+.slot-bonus-screen.gold {
+  border-color: #fff4ae;
+}
+
+.slot-bonus-screen.blue {
+  border-color: #72e2ff;
 }
 
 .slot-machine.basketball-slot-machine .slot-bet-badge {
@@ -562,7 +776,7 @@
   position: relative;
   z-index: 4;
   width: var(--slot-stage-width);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   margin: 0 auto;
 }
 
@@ -570,6 +784,70 @@
   border-color: rgba(114, 226, 255, 0.38);
   background: rgba(2, 8, 23, 0.88);
   color: #e9faff;
+}
+
+.slot-reference-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.slot-reference-panel {
+  border: 1px solid rgba(114, 226, 255, 0.22);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(31, 111, 235, 0.08), rgba(7, 11, 15, 0.18)),
+    var(--surface-soft);
+  padding: 12px;
+}
+
+.slot-reference-panel h3 {
+  margin: 0 0 9px;
+  color: var(--accent-strong);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.slot-pay-chart {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.slot-pay-chart div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid rgba(114, 226, 255, 0.12);
+  padding-bottom: 6px;
+}
+
+.slot-pay-chart div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.slot-pay-chart dt {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.slot-pay-chart dd {
+  margin: 0;
+  color: #f8c957;
+  font-weight: 900;
+}
+
+.slot-how-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .slot-reels.is-spinning {
@@ -801,6 +1079,77 @@
     font-size: 0.46rem;
   }
 
+  .slot-bonus-screen {
+    top: 180px;
+    width: calc(100% - 20px);
+    min-height: 210px;
+    border-width: 3px;
+    border-radius: 12px;
+  }
+
+  .slot-bonus-court {
+    min-height: 204px;
+    grid-template-columns: minmax(0, 1fr) 72px;
+    gap: 7px;
+    padding: 14px;
+  }
+
+  .slot-bonus-copy small {
+    font-size: 0.52rem;
+  }
+
+  .slot-bonus-copy strong {
+    font-size: 1.1rem;
+  }
+
+  .slot-bonus-copy p {
+    font-size: 0.62rem;
+  }
+
+  .slot-bonus-scoreboard {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 6px 8px;
+  }
+
+  .slot-bonus-scoreboard span,
+  .slot-bonus-scoreboard b {
+    font-size: 0.5rem;
+  }
+
+  .slot-bonus-scoreboard strong {
+    font-size: 1.1rem;
+    text-align: left;
+  }
+
+  .slot-bonus-ball-row {
+    gap: 4px;
+  }
+
+  .slot-bonus-ball-row span {
+    width: 17px;
+    height: 17px;
+  }
+
+  .slot-bonus-court img {
+    width: 64px;
+  }
+
+  .slot-bonus-hoop {
+    right: 64px;
+    top: 18px;
+    width: 46px;
+    height: 36px;
+    border-width: 3px;
+  }
+
+  .slot-bonus-hoop span {
+    bottom: -11px;
+    width: 48px;
+    height: 13px;
+    border-width: 3px;
+  }
+
   .slot-machine.basketball-slot-machine .slot-bet-badge {
     position: absolute;
     right: 18px;
@@ -855,7 +1204,7 @@
   .slot-machine.basketball-slot-machine .slot-dashboard {
     grid-area: dashboard;
     width: 100%;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px;
   }
 
@@ -863,6 +1212,10 @@
     min-height: 24px;
     padding: 3px;
     font-size: 0.56rem;
+  }
+
+  .slot-reference-grid {
+    grid-template-columns: 1fr;
   }
 }
 

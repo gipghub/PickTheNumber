@@ -7,8 +7,56 @@ const { FIVE_YEARS_DAYS, GAMES, RANKS, SUITS, RANK_VALUE } = Core;
 const DB_NAME = "pick-the-number-db";
 const DB_VERSION = 1;
 const SOUND_STORAGE_KEY = "pick-the-number-sound";
+const SLOT_POT_STORAGE_KEY = "pick-the-number-slot-pots";
+const SLOT_SESSION_STORAGE_KEY = "pick-the-number-slot-session";
 const SLOT_SPIN_DURATION_MS = 1300;
 const SLOT_SETTLE_DURATION_MS = 650;
+const SLOT_BASE_RTP = 98;
+const SLOT_PAY_OUTCOMES = [
+  { label: "No line win", multiplier: 0, chance: 0.63 },
+  { label: "Single line hit", multiplier: 1, chance: 0.23 },
+  { label: "Double line hit", multiplier: 2, chance: 0.08 },
+  { label: "Full court line", multiplier: 5, chance: 0.035 },
+  { label: "Wild streak", multiplier: 10, chance: 0.017 },
+  { label: "Free throw feature", multiplier: 20, chance: 0.006 },
+  { label: "Heat check feature", multiplier: 50, chance: 0.0015 },
+  { label: "Progressive shot", multiplier: 100, chance: 0.0005 },
+];
+const SLOT_BONUS_PLAYS = {
+  freeThrows: {
+    title: "Free Throws",
+    subtitle: "Five shots at the charity stripe",
+    accent: "orange",
+    statLabel: "Makes",
+    symbol: "basketball.png",
+  },
+  heatCheck: {
+    title: "Heat Check",
+    subtitle: "Streak ladder from downtown",
+    accent: "red",
+    statLabel: "Streak",
+    symbol: "fire-seven.png",
+  },
+  ringChase: {
+    title: "Ring Chase",
+    subtitle: "Collect rings across the court",
+    accent: "gold",
+    statLabel: "Rings",
+    symbol: "ring.png",
+  },
+  hoopJackpot: {
+    title: "Hoop Jackpot",
+    subtitle: "Pick a rim for a progressive shot",
+    accent: "blue",
+    statLabel: "Tier",
+    symbol: "jackpot-hoop.png",
+  },
+};
+const SLOT_POTS = {
+  freeThrow: { target: 6, chance: 0.58, label: "Free Throw Pot", bonusKeys: ["freeThrows", "ringChase"] },
+  heatCheck: { target: 5, chance: 0.36, label: "Heat Check Pot", bonusKeys: ["heatCheck", "freeThrows"] },
+  championship: { target: 4, chance: 0.18, label: "Championship Pot", bonusKeys: ["hoopJackpot", "ringChase"] },
+};
 
 const state = {
   db: null,
@@ -19,6 +67,15 @@ const state = {
   slotSpinning: false,
   slotSpinFallback: null,
   slotSettleFallback: null,
+  slotPots: { freeThrow: 0, heatCheck: 0, championship: 0 },
+  slotLastPotEvents: [],
+  slotBonusTimeout: null,
+  slotCredits: 0,
+  slotLastWin: 0,
+  slotTotalWon: 0,
+  slotSpinCount: 0,
+  slotLastOutcome: null,
+  serviceWorkerRefreshing: false,
   soundEnabled: false,
   audioContext: null,
 };
@@ -74,12 +131,15 @@ const elements = {
   slotReels: $("#slotReels"),
   slotSpinButton: $("#slotSpinButton"),
   slotSpinMeter: $("#slotSpinMeter"),
+  slotCreditsMeter: $("#slotCreditsMeter"),
+  slotWinMeter: $("#slotWinMeter"),
   slotBonusMeter: $("#slotBonusMeter"),
   slotLossMeter: $("#slotLossMeter"),
   slotStopMeter: $("#slotStopMeter"),
   slotFreeThrowPot: $("#slotFreeThrowPot"),
   slotHeatCheckPot: $("#slotHeatCheckPot"),
   slotChampionshipPot: $("#slotChampionshipPot"),
+  slotBonusScreen: $("#slotBonusScreen"),
   slotBetBadge: $("#slotBetBadge"),
   slotGrandMeter: $("#slotGrandMeter"),
   slotMajorMeter: $("#slotMajorMeter"),
@@ -733,14 +793,24 @@ function updateThreeCardAdvice() {
 }
 
 function setupSlots() {
+  loadSlotPots();
+  loadSlotSession();
   [elements.slotBankroll, elements.slotBet, elements.slotRtp, elements.slotVolatility].forEach((input) =>
     input.addEventListener("input", () => {
       playGameSound("ui", "tap");
+      if (input === elements.slotBankroll) resetSlotSessionFromInputs();
       updateSlotsAdvice();
     }),
   );
   elements.slotSpinButton.addEventListener("click", () => {
     if (state.slotSpinning) return;
+    if (state.slotCredits < currentSlotBet()) {
+      elements.slotBonusMeter.textContent = "Add credits";
+      resetSlotSessionFromInputs();
+      updateSlotsAdvice();
+      return;
+    }
+    hideSlotBonusScreen();
     state.slotSpinning = true;
     playGameSound("slots", "spin");
     elements.slotSpinButton.disabled = true;
@@ -771,6 +841,9 @@ function finishSlotSpin() {
   window.clearTimeout(state.slotSpinFallback);
   state.slotSpinFallback = null;
   state.slotSpinSeed = Math.floor(Math.random() * 100000);
+  settleSlotWager();
+  advanceSlotPots();
+  settleSlotBonusWins();
   elements.slotReels.classList.remove("is-spinning");
   elements.slotReels.classList.add("is-settling");
   window.clearTimeout(state.slotSettleFallback);
@@ -790,6 +863,207 @@ function finishSlotSettle() {
   elements.slotSpinButton.disabled = false;
   elements.slotSpinButton.querySelector("span").textContent = "Spin";
   state.slotSpinning = false;
+}
+
+function currentSlotBankroll() {
+  return Math.max(0, Number(elements.slotBankroll.value) || 0);
+}
+
+function currentSlotBet() {
+  return Math.max(0.25, Number(elements.slotBet.value) || 1);
+}
+
+function formatMoney(value) {
+  return `$${Number(value || 0).toFixed(2)}`;
+}
+
+function roundMoney(value) {
+  return Math.round(Number(value || 0) * 100) / 100;
+}
+
+function loadSlotSession() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SLOT_SESSION_STORAGE_KEY) || "{}");
+    state.slotCredits = Number.isFinite(Number(saved.credits)) ? Math.max(0, Number(saved.credits)) : currentSlotBankroll();
+    state.slotLastWin = Number.isFinite(Number(saved.lastWin)) ? Math.max(0, Number(saved.lastWin)) : 0;
+    state.slotTotalWon = Number.isFinite(Number(saved.totalWon)) ? Math.max(0, Number(saved.totalWon)) : 0;
+    state.slotSpinCount = Number.isFinite(Number(saved.spinCount)) ? Math.max(0, Math.floor(Number(saved.spinCount))) : 0;
+    state.slotLastOutcome = saved.lastOutcome || null;
+  } catch {
+    resetSlotSessionFromInputs(false);
+  }
+}
+
+function saveSlotSession() {
+  try {
+    localStorage.setItem(
+      SLOT_SESSION_STORAGE_KEY,
+      JSON.stringify({
+        credits: state.slotCredits,
+        lastWin: state.slotLastWin,
+        totalWon: state.slotTotalWon,
+        spinCount: state.slotSpinCount,
+        lastOutcome: state.slotLastOutcome,
+      }),
+    );
+  } catch {
+    // Session numbers remain usable until the page closes if storage is blocked.
+  }
+}
+
+function resetSlotSessionFromInputs(shouldSave = true) {
+  state.slotCredits = currentSlotBankroll();
+  state.slotLastWin = 0;
+  state.slotTotalWon = 0;
+  state.slotSpinCount = 0;
+  state.slotLastOutcome = null;
+  if (shouldSave) saveSlotSession();
+}
+
+function loadSlotPots() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SLOT_POT_STORAGE_KEY) || "{}");
+    Object.keys(SLOT_POTS).forEach((key) => {
+      const target = SLOT_POTS[key].target;
+      state.slotPots[key] = clampPotValue(saved[key], target);
+    });
+  } catch {
+    state.slotPots = { freeThrow: 0, heatCheck: 0, championship: 0 };
+  }
+}
+
+function saveSlotPots() {
+  try {
+    localStorage.setItem(SLOT_POT_STORAGE_KEY, JSON.stringify(state.slotPots));
+  } catch {
+    // Pot meters still persist for this session if browser storage is blocked.
+  }
+}
+
+function clampPotValue(value, target) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0;
+  return Math.max(0, Math.min(target, Math.floor(numeric)));
+}
+
+function advanceSlotPots() {
+  const events = [];
+  Object.entries(SLOT_POTS).forEach(([key, pot]) => {
+    const roll = Math.random();
+    if (roll > pot.chance) return;
+
+    const increment = roll < pot.chance * 0.14 ? 2 : 1;
+    const nextValue = state.slotPots[key] + increment;
+    if (nextValue >= pot.target) {
+      const bonus = rollSlotBonus(pot);
+      state.slotPots[key] = 0;
+      events.push({ type: "trigger", key, label: pot.label, bonus });
+      return;
+    }
+
+    state.slotPots[key] = nextValue;
+    events.push({ type: "advance", key, label: pot.label, value: nextValue, increment });
+  });
+
+  state.slotLastPotEvents = events;
+  saveSlotPots();
+}
+
+function rollSlotPayout(rtp) {
+  const scale = Math.max(0.75, Math.min(1.15, (Number(rtp) || SLOT_BASE_RTP) / SLOT_BASE_RTP));
+  const roll = Math.random();
+  let cumulative = 0;
+  const outcome =
+    SLOT_PAY_OUTCOMES.find((item) => {
+      cumulative += item.chance;
+      return roll <= cumulative;
+    }) || SLOT_PAY_OUTCOMES[0];
+
+  return {
+    ...outcome,
+    multiplier: outcome.multiplier * scale,
+  };
+}
+
+function settleSlotWager() {
+  const bet = currentSlotBet();
+  const outcome = rollSlotPayout(elements.slotRtp.value);
+  const win = roundMoney(bet * outcome.multiplier);
+
+  state.slotCredits = roundMoney(Math.max(0, state.slotCredits - bet) + win);
+  state.slotLastWin = win;
+  state.slotTotalWon = roundMoney(state.slotTotalWon + win);
+  state.slotSpinCount += 1;
+  state.slotLastOutcome = outcome.label;
+  saveSlotSession();
+}
+
+function settleSlotBonusWins() {
+  const triggered = state.slotLastPotEvents.filter((event) => event.type === "trigger");
+  if (!triggered.length) return;
+
+  const bet = currentSlotBet();
+  const bonusWin = triggered.reduce((total, event) => total + bet * (event.bonus.multiplier || 0), 0);
+  if (bonusWin <= 0) return;
+
+  state.slotLastWin = roundMoney(state.slotLastWin + bonusWin);
+  state.slotCredits = roundMoney(state.slotCredits + bonusWin);
+  state.slotTotalWon = roundMoney(state.slotTotalWon + bonusWin);
+  saveSlotSession();
+}
+
+function rollSlotBonus(pot) {
+  const bonusKeys = pot.bonusKeys || ["freeThrows"];
+  const bonusKey = bonusKeys[Math.floor(Math.random() * bonusKeys.length)] || "freeThrows";
+  const bonus = SLOT_BONUS_PLAYS[bonusKey] || SLOT_BONUS_PLAYS.freeThrows;
+  const roll = Math.random();
+
+  if (bonusKey === "freeThrows") {
+    const makes = Math.max(1, Math.min(5, Math.ceil(roll * 5)));
+    return {
+      ...bonus,
+      key: bonusKey,
+      value: `${makes}/5`,
+      award: makes >= 4 ? "Hot hand boost" : "Credit boost",
+      meter: Math.round((makes / 5) * 100),
+      multiplier: makes * 2,
+    };
+  }
+
+  if (bonusKey === "heatCheck") {
+    const streak = Math.max(2, Math.min(8, Math.ceil(roll * 8)));
+    return {
+      ...bonus,
+      key: bonusKey,
+      value: `${streak}x`,
+      award: streak >= 6 ? "Fire ladder" : "Fast-break pays",
+      meter: Math.min(100, streak * 12),
+      multiplier: streak * 3,
+    };
+  }
+
+  if (bonusKey === "ringChase") {
+    const rings = Math.max(1, Math.min(3, Math.ceil(roll * 3)));
+    return {
+      ...bonus,
+      key: bonusKey,
+      value: `${rings}/3`,
+      award: rings === 3 ? "Ring sweep" : "Ring collect",
+      meter: Math.round((rings / 3) * 100),
+      multiplier: rings * 12,
+    };
+  }
+
+  const tiers = roll > 0.96 ? "Grand" : roll > 0.84 ? "Major" : roll > 0.48 ? "Minor" : "Mini";
+  const tierMultipliers = { Mini: 15, Minor: 40, Major: 150, Grand: 500 };
+  return {
+    ...bonus,
+    key: bonusKey,
+    value: tiers,
+    award: `${tiers} shot`,
+    meter: roll > 0.96 ? 100 : roll > 0.84 ? 78 : roll > 0.48 ? 54 : 32,
+    multiplier: tierMultipliers[tiers],
+  };
 }
 
 function updateSlotsAdvice(playResultSound = false) {
@@ -842,42 +1116,113 @@ function renderSlotVisual(plan) {
 
   elements.slotReels.innerHTML = reelSymbols.map((label, index) => renderSlotSymbol(label, index)).join("");
   elements.slotSpinMeter.textContent = `${plan.spins} spins`;
+  elements.slotCreditsMeter.textContent = `Credits ${formatMoney(state.slotCredits)}`;
+  elements.slotWinMeter.textContent = `Win ${formatMoney(state.slotLastWin)}`;
   elements.slotLossMeter.textContent = `$${plan.expectedLoss.toFixed(2)} expected loss`;
   elements.slotStopMeter.textContent = `$${plan.stopLoss.toFixed(0)} stop`;
   elements.slotBetBadge.textContent = `$${Number(elements.slotBet.value || 0).toFixed(2)}`;
-  updateSlotBonusMeters(reelSymbols, playResultSound);
+  updateSlotBonusMeters(playResultSound);
   elements.slotGrandMeter.textContent = `$${Math.max(5000, plan.winGoal * 250).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   elements.slotMajorMeter.textContent = `$${Math.max(1000, plan.winGoal * 50).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   elements.slotMinorMeter.textContent = `$${Math.max(100, plan.stopLoss * 4).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   elements.slotMiniMeter.textContent = `$${Math.max(25, plan.stopLoss).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
-function updateSlotBonusMeters(symbols, playResultSound = false) {
-  const counts = symbols.reduce((summary, symbol) => {
-    summary[symbol] = (summary[symbol] || 0) + 1;
-    return summary;
-  }, {});
+function updateSlotBonusMeters(playResultSound = false) {
+  const triggered = state.slotLastPotEvents.filter((event) => event.type === "trigger");
+  const advanced = state.slotLastPotEvents.filter((event) => event.type === "advance");
+  const triggeredKeys = new Set(triggered.map((event) => event.key));
 
-  const freeThrowCount = counts["bonus-free"] || 0;
-  const heatCount = (counts["fire-seven"] || 0) + (counts.wild || 0);
-  const champCount = (counts.ring || 0) + (counts.trophy || 0) + (counts["jackpot-hoop"] || 0);
-  setSlotPot(elements.slotFreeThrowPot, freeThrowCount, 3);
-  setSlotPot(elements.slotHeatCheckPot, heatCount, 4);
-  setSlotPot(elements.slotChampionshipPot, champCount, 5);
+  setSlotPot(
+    elements.slotFreeThrowPot,
+    state.slotPots.freeThrow,
+    SLOT_POTS.freeThrow.target,
+    triggeredKeys.has("freeThrow"),
+  );
+  setSlotPot(
+    elements.slotHeatCheckPot,
+    state.slotPots.heatCheck,
+    SLOT_POTS.heatCheck.target,
+    triggeredKeys.has("heatCheck"),
+  );
+  setSlotPot(
+    elements.slotChampionshipPot,
+    state.slotPots.championship,
+    SLOT_POTS.championship.target,
+    triggeredKeys.has("championship"),
+  );
 
-  const bonusTotal = freeThrowCount + heatCount + (counts["jackpot-hoop"] || 0);
-  elements.slotBonusMeter.textContent =
-    bonusTotal >= 3 ? `${bonusTotal} bonus symbols showing` : `${3 - bonusTotal} more to bonus`;
+  if (triggered.length) {
+    showSlotBonusScreen(triggered);
+    elements.slotBonusMeter.textContent = `${triggered.map((event) => event.bonus.title).join(" + ")} bonus triggered`;
+  } else if (advanced.length) {
+    elements.slotBonusMeter.textContent = advanced
+      .map((event) => `${event.label.replace(" Pot", "")} +${event.increment}`)
+      .join(" · ");
+  } else if (state.slotLastOutcome) {
+    elements.slotBonusMeter.textContent = state.slotLastOutcome;
+  } else {
+    elements.slotBonusMeter.textContent = "Pots hold";
+  }
+
   if (playResultSound) {
-    window.setTimeout(() => playGameSound("slots", bonusTotal >= 3 ? "bonus" : "stop"), 360);
+    window.setTimeout(() => playGameSound("slots", triggered.length ? "bonus" : "stop"), 360);
+    state.slotLastPotEvents = [];
   }
 }
 
-function setSlotPot(element, count, target) {
-  const fill = Math.min(100, Math.round((count / target) * 100));
+function showSlotBonusScreen(triggeredEvents) {
+  if (!elements.slotBonusScreen || !triggeredEvents.length) return;
+  const featuredEvent = triggeredEvents[0];
+  const bonus = featuredEvent.bonus;
+  const extraEvents = triggeredEvents.slice(1);
+  const shots = Array.from({ length: 5 }, (_, index) => index < Math.max(1, Math.round(bonus.meter / 20)));
+
+  elements.slotBonusScreen.hidden = false;
+  elements.slotBonusScreen.className = `slot-bonus-screen is-open ${bonus.accent}`;
+  elements.slotBonusScreen.innerHTML = `
+    <div class="slot-bonus-court">
+      <div class="slot-bonus-hoop" aria-hidden="true">
+        <span></span>
+      </div>
+      <div class="slot-bonus-copy">
+        <small>${featuredEvent.label}</small>
+        <strong>${bonus.title}</strong>
+        <p>${bonus.subtitle}</p>
+      </div>
+      <div class="slot-bonus-scoreboard">
+        <span>${bonus.statLabel}</span>
+        <strong>${bonus.value}</strong>
+        <b>${bonus.award}</b>
+      </div>
+      <div class="slot-bonus-ball-row" aria-hidden="true">
+        ${shots.map((isMade) => `<span class="${isMade ? "made" : ""}"></span>`).join("")}
+      </div>
+      <img src="./assets/slots/${bonus.symbol}" alt="" loading="lazy" />
+      ${extraEvents.length ? `<em>Extra bonus: ${extraEvents.map((event) => event.bonus.title).join(" + ")}</em>` : ""}
+    </div>
+  `;
+
+  window.clearTimeout(state.slotBonusTimeout);
+  state.slotBonusTimeout = window.setTimeout(hideSlotBonusScreen, 6200);
+}
+
+function hideSlotBonusScreen() {
+  if (!elements.slotBonusScreen) return;
+  window.clearTimeout(state.slotBonusTimeout);
+  state.slotBonusTimeout = null;
+  elements.slotBonusScreen.classList.remove("is-open");
+  elements.slotBonusScreen.hidden = true;
+}
+
+function setSlotPot(element, count, target, triggered = false) {
+  const fill = triggered ? 100 : Math.min(100, Math.round((count / target) * 100));
+  const label = triggered ? "BONUS" : `${Math.min(count, target)}/${target}`;
   element.style.setProperty("--pot-fill", `${fill}%`);
-  element.querySelector("b").dataset.count = `${Math.min(count, target)}/${target}`;
-  element.classList.toggle("is-full", count >= target);
+  element.querySelector("b").setAttribute("data-count", label);
+  const visibleValue = element.querySelector(".slot-pot-value");
+  if (visibleValue) visibleValue.textContent = label;
+  element.classList.toggle("is-full", triggered || count >= target);
 }
 
 function renderSlotSymbol(symbol, index) {
@@ -924,8 +1269,16 @@ function updateBankrollAdvice() {
 
 function setupPwa() {
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js").catch((error) => {
-      console.warn("Service worker registration failed", error);
+    navigator.serviceWorker
+      .register("service-worker.js")
+      .then((registration) => registration.update())
+      .catch((error) => {
+        console.warn("Service worker registration failed", error);
+      });
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (state.serviceWorkerRefreshing) return;
+      state.serviceWorkerRefreshing = true;
+      window.location.reload();
     });
   }
 

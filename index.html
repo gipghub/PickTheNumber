@@ -669,15 +669,15 @@
                     <div class="slot-pot-rack" aria-label="Bonus pot meters">
                       <div class="slot-pot" id="slotFreeThrowPot">
                         <span>Free Throw Pot</span>
-                        <b><i></i></b>
+                        <b><i></i><em class="slot-pot-value">0/6</em></b>
                       </div>
                       <div class="slot-pot" id="slotHeatCheckPot">
                         <span>Heat Check Pot</span>
-                        <b><i></i></b>
+                        <b><i></i><em class="slot-pot-value">0/5</em></b>
                       </div>
                       <div class="slot-pot" id="slotChampionshipPot">
                         <span>Championship Pot</span>
-                        <b><i></i></b>
+                        <b><i></i><em class="slot-pot-value">0/4</em></b>
                       </div>
                     </div>
                     <button class="slot-spin-control" id="slotSpinButton" type="button" aria-label="Spin preview reels">
@@ -689,6 +689,7 @@
                       <span>Ring Chase</span>
                       <span>Hoop Jackpot</span>
                     </div>
+                    <div class="slot-bonus-screen" id="slotBonusScreen" aria-live="polite" hidden></div>
                     <div class="slot-window">
                       <div class="slot-line-labels left" aria-hidden="true">
                         <span>1</span>
@@ -714,9 +715,11 @@
                       </div>
                     </div>
                     <div class="slot-dashboard">
+                      <span id="slotCreditsMeter">Credits $100.00</span>
+                      <span id="slotWinMeter">Win $0.00</span>
                       <span id="slotSpinMeter">100 spins</span>
-                      <span id="slotBonusMeter">Bonus pots ready</span>
-                      <span id="slotLossMeter">$6 expected loss</span>
+                      <span id="slotBonusMeter">Pots hold</span>
+                      <span id="slotLossMeter">$2 expected loss</span>
                       <span id="slotStopMeter">$45 stop</span>
                     </div>
                   </div>
@@ -732,7 +735,7 @@
                   </div>
                   <div class="field-stack">
                     <label for="slotRtp">Advertised RTP %</label>
-                    <input id="slotRtp" type="number" min="80" max="99.5" step="0.1" value="94" />
+                    <input id="slotRtp" type="number" min="80" max="99.5" step="0.1" value="98" />
                   </div>
                   <div class="field-stack">
                     <label for="slotVolatility">Volatility</label>
@@ -742,6 +745,29 @@
                       <option value="high">High</option>
                     </select>
                   </div>
+                </div>
+                <div class="slot-reference-grid">
+                  <section class="slot-reference-panel">
+                    <h3>Pay Chart</h3>
+                    <dl class="slot-pay-chart">
+                      <div><dt>Single line hit</dt><dd>1x bet</dd></div>
+                      <div><dt>Double line hit</dt><dd>2x bet</dd></div>
+                      <div><dt>Full court line</dt><dd>5x bet</dd></div>
+                      <div><dt>Wild streak</dt><dd>10x bet</dd></div>
+                      <div><dt>Free throw feature</dt><dd>20x bet</dd></div>
+                      <div><dt>Heat check feature</dt><dd>50x bet</dd></div>
+                      <div><dt>Progressive shot</dt><dd>100x bet</dd></div>
+                    </dl>
+                  </section>
+                  <section class="slot-reference-panel">
+                    <h3>How To Play</h3>
+                    <ol class="slot-how-list">
+                      <li>Set bankroll, spin size, RTP, and volatility.</li>
+                      <li>Spin the 5-line reels; credits subtract the bet and add modeled wins.</li>
+                      <li>The three pots save between visits and advance from independent randomizers.</li>
+                      <li>When a pot fills, it launches a basketball bonus play with its own award roll.</li>
+                    </ol>
+                  </section>
                 </div>
                 <div class="advice-box" id="slotsAdvice"></div>
               </div>
@@ -798,6 +824,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js" defer></script>
+    <script src="app.js?v=28" defer></script>
   </body>
 </html>

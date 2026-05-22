@@ -1,10 +1,10 @@
-const CACHE_NAME = "pick-the-number-v20";
+const CACHE_NAME = "pick-the-number-v28";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css",
   "./src/core.js",
-  "./app.js",
+  "./app.js?v=28",
   "./manifest.webmanifest",
   "./icons/icon.svg",
   "./assets/slots/arena.png",
@@ -47,7 +47,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    fetch(request)
+    fetch(new Request(request, { cache: "reload" }))
       .then((response) => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
