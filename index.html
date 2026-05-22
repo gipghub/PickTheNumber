@@ -197,23 +197,53 @@
                   <small>Common multi-deck basic strategy</small>
                 </div>
                 <div class="casino-visual blackjack-visual" aria-label="Blackjack table preview">
-                  <div class="felt-table blackjack-table">
-                    <div class="table-zone dealer-zone">
-                      <span class="table-label">Dealer</span>
-                      <div class="visual-card-row" id="bjDealerGraphic"></div>
-                    </div>
-                    <div class="table-center-mark">
-                      <span>Blackjack pays 3 to 2</span>
-                      <div class="chip-rack" aria-hidden="true">
-                        <i></i>
-                        <i></i>
-                        <i></i>
+                  <div class="felt-table blackjack-table blackjack-arena">
+                    <div class="bj-oval-table">
+                      <div class="bj-seat-cards seat-top-left" aria-hidden="true">
+                        <span class="bj-card-back"></span>
+                        <span class="bj-card-back"></span>
                       </div>
-                    </div>
-                    <div class="table-zone player-zone">
-                      <span class="table-label">Player</span>
-                      <div class="visual-card-row" id="bjPlayerGraphic"></div>
-                      <strong class="action-plaque" id="bjActionGraphic">Hit</strong>
+                      <div class="bj-seat-cards seat-top" aria-hidden="true">
+                        <span class="bj-card-back"></span>
+                        <span class="bj-card-back"></span>
+                      </div>
+                      <div class="bj-seat-cards seat-top-right" aria-hidden="true">
+                        <span class="bj-card-back"></span>
+                        <span class="bj-card-back"></span>
+                      </div>
+                      <div class="bj-seat-cards seat-bottom-left" aria-hidden="true">
+                        <span class="bj-card-back"></span>
+                        <span class="bj-card-back"></span>
+                      </div>
+                      <div class="bj-seat-cards seat-bottom" aria-hidden="true">
+                        <span class="bj-card-back"></span>
+                        <span class="bj-card-back"></span>
+                      </div>
+                      <div class="bj-seat-cards seat-bottom-right" aria-hidden="true">
+                        <span class="bj-card-back"></span>
+                        <span class="bj-card-back"></span>
+                      </div>
+                      <div class="bj-table-logo" aria-hidden="true">Blackjack</div>
+                      <div class="bj-dealer-button" aria-hidden="true">Dealer</div>
+                      <div class="bj-table-chip bj-table-chip-small" aria-hidden="true">Min<br />Bet</div>
+                      <div class="bj-table-chip bj-table-chip-big" aria-hidden="true">3:2</div>
+                      <div class="table-zone dealer-zone bj-live-dealer">
+                        <span class="table-label">Dealer</span>
+                        <div class="visual-card-row" id="bjDealerGraphic"></div>
+                      </div>
+                      <div class="table-center-mark bj-table-center">
+                        <span>Dealer stands on soft 17</span>
+                        <div class="chip-rack" aria-hidden="true">
+                          <i></i>
+                          <i></i>
+                          <i></i>
+                        </div>
+                      </div>
+                      <div class="table-zone player-zone bj-live-player">
+                        <span class="table-label">Player</span>
+                        <div class="visual-card-row" id="bjPlayerGraphic"></div>
+                        <strong class="action-plaque bj-action-plaque" id="bjActionGraphic">Hit</strong>
+                      </div>
                     </div>
                   </div>
                 </div>
