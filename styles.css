@@ -684,6 +684,7 @@ h1 {
 }
 
 .icon-button,
+.sound-toggle,
 .status-pill,
 .primary-action,
 .secondary-action,
@@ -702,6 +703,21 @@ h1 {
   display: grid;
   place-items: center;
   font-weight: 900;
+}
+
+.sound-toggle {
+  min-height: 42px;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.sound-toggle.is-on {
+  border-color: rgba(92, 224, 196, 0.72);
+  background: rgba(24, 168, 140, 0.18);
+  color: var(--accent-strong);
+  box-shadow: 0 0 18px rgba(24, 168, 140, 0.18);
 }
 
 .status-pill {

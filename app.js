@@ -6,6 +6,7 @@ if (!Core) throw new Error("PickTheNumberCore failed to load.");
 const { FIVE_YEARS_DAYS, GAMES, RANKS, SUITS, RANK_VALUE } = Core;
 const DB_NAME = "pick-the-number-db";
 const DB_VERSION = 1;
+const SOUND_STORAGE_KEY = "pick-the-number-sound";
 
 const state = {
   db: null,
@@ -13,6 +14,8 @@ const state = {
   draws: [],
   deferredInstallPrompt: null,
   slotSpinSeed: 0,
+  soundEnabled: false,
+  audioContext: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -20,6 +23,7 @@ const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
 const elements = {
   installButton: $("#installButton"),
+  soundToggle: $("#soundToggle"),
   connectionStatus: $("#connectionStatus"),
   drawCountLabel: $("#drawCountLabel"),
   drawWindow: $("#drawWindow"),
@@ -88,6 +92,122 @@ const elements = {
 
 function setStatus(message) {
   elements.connectionStatus.textContent = message;
+}
+
+function setupSound() {
+  try {
+    state.soundEnabled = localStorage.getItem(SOUND_STORAGE_KEY) === "on";
+  } catch {
+    state.soundEnabled = false;
+  }
+  updateSoundToggle();
+  elements.soundToggle.addEventListener("click", async () => {
+    state.soundEnabled = !state.soundEnabled;
+    try {
+      localStorage.setItem(SOUND_STORAGE_KEY, state.soundEnabled ? "on" : "off");
+    } catch {
+      // Sound still works for this session if persistent storage is blocked.
+    }
+    updateSoundToggle();
+    if (state.soundEnabled) {
+      await ensureAudioContext();
+      playGameSound("ui", "on");
+    }
+  });
+}
+
+function updateSoundToggle() {
+  elements.soundToggle.textContent = state.soundEnabled ? "Sound On" : "Sound Off";
+  elements.soundToggle.setAttribute("aria-pressed", String(state.soundEnabled));
+  elements.soundToggle.classList.toggle("is-on", state.soundEnabled);
+}
+
+async function ensureAudioContext() {
+  if (!state.audioContext) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    state.audioContext = new AudioContextClass();
+  }
+  if (state.audioContext.state === "suspended") await state.audioContext.resume();
+  return state.audioContext;
+}
+
+async function playGameSound(game, cue = "tap") {
+  if (!state.soundEnabled) return;
+  let context;
+  try {
+    context = await ensureAudioContext();
+  } catch {
+    return;
+  }
+  if (!context) return;
+
+  const now = context.currentTime;
+  const sounds = {
+    ui: () => playToneSequence(context, now, [523, 659], 0.055, "sine", 0.035),
+    lottery: () => playToneSequence(context, now, [392, 523, 659], 0.045, "triangle", 0.026),
+    blackjack: () => {
+      scheduleNoise(context, now, 0.08, 0.018, 900);
+      scheduleTone(context, now + 0.035, 220, 0.09, "triangle", 0.032);
+    },
+    videoPoker: () => playToneSequence(context, now, [640, 520, 760], 0.038, "square", 0.018),
+    craps: () => {
+      scheduleNoise(context, now, 0.18, 0.026, 1500);
+      playToneSequence(context, now + 0.06, [180, 235, 190], 0.045, "sawtooth", 0.016);
+    },
+    threeCard: () => playToneSequence(context, now, [310, 390, 475], 0.05, "triangle", 0.026),
+    slots: () => {
+      if (cue === "bonus") {
+        playToneSequence(context, now, [523, 659, 784, 1046], 0.075, "triangle", 0.045);
+        scheduleNoise(context, now + 0.05, 0.18, 0.018, 3200);
+        return;
+      }
+      scheduleNoise(context, now, 0.2, 0.018, 2400);
+      playToneSequence(context, now + 0.02, [196, 247, 294, 392], 0.048, "square", 0.019);
+    },
+  };
+
+  (sounds[game] || sounds.ui)();
+}
+
+function playToneSequence(context, start, frequencies, duration, type, volume) {
+  frequencies.forEach((frequency, index) => {
+    scheduleTone(context, start + index * duration * 0.9, frequency, duration, type, volume);
+  });
+}
+
+function scheduleTone(context, start, frequency, duration, type, volume) {
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, start);
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  oscillator.connect(gain).connect(context.destination);
+  oscillator.start(start);
+  oscillator.stop(start + duration + 0.02);
+}
+
+function scheduleNoise(context, start, duration, volume, filterFrequency) {
+  const sampleCount = Math.max(1, Math.floor(context.sampleRate * duration));
+  const buffer = context.createBuffer(1, sampleCount, context.sampleRate);
+  const output = buffer.getChannelData(0);
+  for (let index = 0; index < sampleCount; index += 1) {
+    output[index] = (Math.random() * 2 - 1) * (1 - index / sampleCount);
+  }
+
+  const source = context.createBufferSource();
+  const filter = context.createBiquadFilter();
+  const gain = context.createGain();
+  filter.type = "bandpass";
+  filter.frequency.setValueAtTime(filterFrequency, start);
+  gain.gain.setValueAtTime(volume, start);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  source.buffer = buffer;
+  source.connect(filter).connect(gain).connect(context.destination);
+  source.start(start);
+  source.stop(start + duration);
 }
 
 function openDatabase() {
@@ -322,11 +442,15 @@ function renderTicket(ticket, game) {
 
 function setupNavigation() {
   $$(".tab-button").forEach((button) => {
-    button.addEventListener("click", () => showView(button.dataset.view));
+    button.addEventListener("click", () => {
+      playGameSound("ui", "tap");
+      showView(button.dataset.view);
+    });
   });
 
   $$(".segment").forEach((button) => {
     button.addEventListener("click", async () => {
+      playGameSound("lottery", "select");
       $$(".segment").forEach((item) => item.classList.remove("active"));
       button.classList.add("active");
       state.game = button.dataset.game;
@@ -338,7 +462,10 @@ function setupNavigation() {
   });
 
   $$(".sub-tab").forEach((button) => {
-    button.addEventListener("click", () => showStrategy(button.dataset.strategy));
+    button.addEventListener("click", () => {
+      playGameSound(button.dataset.strategy, "enter");
+      showStrategy(button.dataset.strategy);
+    });
   });
 }
 
@@ -374,9 +501,18 @@ function setupBlackjack() {
     updateBlackjackAdvice();
   };
 
-  elements.bjHandType.addEventListener("change", refreshPlayerValues);
-  elements.bjPlayer.addEventListener("change", updateBlackjackAdvice);
-  elements.bjDealer.addEventListener("change", updateBlackjackAdvice);
+  elements.bjHandType.addEventListener("change", () => {
+    playGameSound("blackjack", "card");
+    refreshPlayerValues();
+  });
+  elements.bjPlayer.addEventListener("change", () => {
+    playGameSound("blackjack", "card");
+    updateBlackjackAdvice();
+  });
+  elements.bjDealer.addEventListener("change", () => {
+    playGameSound("blackjack", "card");
+    updateBlackjackAdvice();
+  });
   refreshPlayerValues();
 }
 
@@ -446,8 +582,14 @@ function setupCardPickers() {
     ["4", "♦"],
   ]);
 
-  elements.videoPokerCards.addEventListener("change", updateVideoPokerAdvice);
-  elements.threeCardCards.addEventListener("change", updateThreeCardAdvice);
+  elements.videoPokerCards.addEventListener("change", () => {
+    playGameSound("videoPoker", "card");
+    updateVideoPokerAdvice();
+  });
+  elements.threeCardCards.addEventListener("change", () => {
+    playGameSound("threeCard", "card");
+    updateThreeCardAdvice();
+  });
   updateVideoPokerAdvice();
   updateThreeCardAdvice();
 }
@@ -547,8 +689,15 @@ function mostCommon(cards, key) {
 }
 
 function setupCraps() {
-  [elements.crapsPoint, elements.crapsBankroll, elements.crapsUnit].forEach((input) =>
-    input.addEventListener("input", updateCrapsAdvice),
+  elements.crapsPoint.addEventListener("input", () => {
+    playGameSound("craps", "dice");
+    updateCrapsAdvice();
+  });
+  [elements.crapsBankroll, elements.crapsUnit].forEach((input) =>
+    input.addEventListener("input", () => {
+      playGameSound("blackjack", "chip");
+      updateCrapsAdvice();
+    }),
   );
   updateCrapsAdvice();
 }
@@ -580,18 +729,22 @@ function updateThreeCardAdvice() {
 
 function setupSlots() {
   [elements.slotBankroll, elements.slotBet, elements.slotRtp, elements.slotVolatility].forEach((input) =>
-    input.addEventListener("input", updateSlotsAdvice),
+    input.addEventListener("input", () => {
+      playGameSound("ui", "tap");
+      updateSlotsAdvice();
+    }),
   );
   elements.slotSpinButton.addEventListener("click", () => {
+    playGameSound("slots", "spin");
     state.slotSpinSeed = Math.floor(Math.random() * 100000);
     elements.slotReels.classList.add("is-spinning");
     window.setTimeout(() => elements.slotReels.classList.remove("is-spinning"), 520);
-    updateSlotsAdvice();
+    updateSlotsAdvice(true);
   });
   updateSlotsAdvice();
 }
 
-function updateSlotsAdvice() {
+function updateSlotsAdvice(playResultSound = false) {
   const plan = Core.slotsPlan(elements.slotBankroll.value, elements.slotBet.value, elements.slotRtp.value, elements.slotVolatility.value);
   elements.slotsAdvice.innerHTML = `<strong>${plan.spins} spins before the bankroll is gone.</strong><br>At ${Number(elements.slotRtp.value).toFixed(1)}% RTP, the long-run expected loss over that many spins is about $${plan.expectedLoss.toFixed(2)}. For ${elements.slotVolatility.value} volatility, consider a stop-loss near $${plan.stopLoss.toFixed(0)} and a win goal near $${plan.winGoal.toFixed(0)}.`;
   renderSlotVisual(plan);
@@ -644,14 +797,14 @@ function renderSlotVisual(plan) {
   elements.slotLossMeter.textContent = `$${plan.expectedLoss.toFixed(2)} expected loss`;
   elements.slotStopMeter.textContent = `$${plan.stopLoss.toFixed(0)} stop`;
   elements.slotBetBadge.textContent = `$${Number(elements.slotBet.value || 0).toFixed(2)}`;
-  updateSlotBonusMeters(reelSymbols);
+  updateSlotBonusMeters(reelSymbols, playResultSound);
   elements.slotGrandMeter.textContent = `$${Math.max(5000, plan.winGoal * 250).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   elements.slotMajorMeter.textContent = `$${Math.max(1000, plan.winGoal * 50).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   elements.slotMinorMeter.textContent = `$${Math.max(100, plan.stopLoss * 4).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   elements.slotMiniMeter.textContent = `$${Math.max(25, plan.stopLoss).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
-function updateSlotBonusMeters(symbols) {
+function updateSlotBonusMeters(symbols, playResultSound = false) {
   const counts = symbols.reduce((summary, symbol) => {
     summary[symbol] = (summary[symbol] || 0) + 1;
     return summary;
@@ -667,6 +820,9 @@ function updateSlotBonusMeters(symbols) {
   const bonusTotal = freeThrowCount + heatCount + (counts["jackpot-hoop"] || 0);
   elements.slotBonusMeter.textContent =
     bonusTotal >= 3 ? `${bonusTotal} bonus symbols showing` : `${3 - bonusTotal} more to bonus`;
+  if (playResultSound) {
+    window.setTimeout(() => playGameSound("slots", bonusTotal >= 3 ? "bonus" : "stop"), 360);
+  }
 }
 
 function setSlotPot(element, count, target) {
@@ -703,7 +859,10 @@ function renderSlotSymbol(symbol, index) {
 
 function setupBankroll() {
   [elements.monthlyBudget, elements.sessionsMonth, elements.lotterySpend].forEach((input) =>
-    input.addEventListener("input", updateBankrollAdvice),
+    input.addEventListener("input", () => {
+      playGameSound("ui", "tap");
+      updateBankrollAdvice();
+    }),
   );
   updateBankrollAdvice();
 }
@@ -736,6 +895,7 @@ function setupPwa() {
 }
 
 async function init() {
+  setupSound();
   setupNavigation();
   setupBlackjack();
   setupCardPickers();
@@ -745,8 +905,14 @@ async function init() {
   setupPwa();
   applyInitialRoute();
 
-  elements.syncButton.addEventListener("click", syncDrawData);
-  elements.generateButton.addEventListener("click", generateTickets);
+  elements.syncButton.addEventListener("click", () => {
+    playGameSound("lottery", "sync");
+    syncDrawData();
+  });
+  elements.generateButton.addEventListener("click", () => {
+    playGameSound("lottery", "generate");
+    generateTickets();
+  });
   elements.csvUpload.addEventListener("change", importCsvFile);
   elements.drawWindow.addEventListener("change", renderLottery);
   elements.pickStyle.addEventListener("change", () => {
