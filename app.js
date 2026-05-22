@@ -825,6 +825,10 @@ function setupSlots() {
     state.slotSpinFallback = window.setTimeout(finishSlotSpin, SLOT_SPIN_DURATION_MS + 250);
   });
   elements.slotReels.addEventListener("animationend", handleSlotAnimationEnd);
+  elements.slotBonusScreen.addEventListener("click", (event) => {
+    if (!event.target.closest("[data-slot-bonus-close]")) return;
+    hideSlotBonusScreen();
+  });
   updateSlotsAdvice();
   maybeShowSlotBonusPreview();
 }
@@ -1186,6 +1190,7 @@ function showSlotBonusScreen(triggeredEvents) {
   elements.slotBonusScreen.className = `slot-bonus-screen is-open ${bonus.accent}`;
   elements.slotBonusScreen.innerHTML = `
     <div class="slot-bonus-court">
+      <button class="slot-bonus-close" type="button" data-slot-bonus-close aria-label="Close bonus screen">×</button>
       <div class="slot-bonus-hoop" aria-hidden="true">
         <span></span>
       </div>
@@ -1233,6 +1238,12 @@ function hideSlotBonusScreen() {
   state.slotBonusTimeout = null;
   elements.slotBonusScreen.classList.remove("is-open");
   elements.slotBonusScreen.hidden = true;
+  if (window.location.hash === "#slotBonusScreen" || new URLSearchParams(window.location.search).has("slotBonus")) {
+    const nextUrl = new URL(window.location.href);
+    nextUrl.hash = "";
+    nextUrl.searchParams.delete("slotBonus");
+    window.history.replaceState(null, "", `${nextUrl.pathname}${nextUrl.search}`);
+  }
 }
 
 function setSlotPot(element, count, target, triggered = false) {
