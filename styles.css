@@ -404,7 +404,7 @@
   z-index: 4;
   width: var(--slot-stage-width);
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin: 0 auto 10px;
 }
@@ -1422,7 +1422,7 @@ body.slot-profile-opened {
   .slot-bonus-plays {
     grid-area: bonus;
     width: 100%;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px;
     margin-bottom: 0;
   }
@@ -5141,37 +5141,107 @@ input:focus {
 
   .vp-hold-row,
   .vp-screen .machine-hand {
-    display: flex;
-    gap: 5px;
-    overflow-x: auto;
-    padding-bottom: 4px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+    overflow-x: visible;
+    padding: 0 2px 4px;
   }
 
   .vp-hold-row span {
-    flex: 0 0 86px;
     min-width: 0;
-    min-height: 24px;
-    font-size: 0.7rem;
+    width: 100%;
+    min-height: 20px;
+    border-width: 2px;
+    border-radius: 4px;
+    font-size: 0.52rem;
   }
 
   .vp-card {
-    flex: 0 0 86px;
+    width: 100%;
     min-width: 0;
-    min-height: 118px;
+    min-height: clamp(78px, 28vw, 118px);
+    border-width: 2px;
+    border-radius: 5px;
+  }
+
+  .vp-card.is-held {
+    box-shadow:
+      inset 0 0 0 2px rgba(242, 241, 90, 0.82),
+      0 0 8px rgba(242, 241, 90, 0.38);
   }
 
   .vp-corner {
-    font-size: 1.1rem;
+    font-size: clamp(0.68rem, 3.6vw, 1.1rem);
   }
 
   .vp-corner.top {
-    top: 8px;
-    left: 8px;
+    top: 5px;
+    left: 5px;
   }
 
   .vp-corner.bottom {
-    right: 8px;
-    bottom: 8px;
+    right: 5px;
+    bottom: 5px;
+  }
+
+  .vp-card-art {
+    width: 52%;
+  }
+}
+
+@media (max-width: 380px) {
+  .vp-screen .machine-hand {
+    gap: 2px;
+    padding-inline: 1px;
+  }
+
+  .vp-hold-row {
+    gap: 2px;
+    padding-inline: 1px;
+  }
+
+  .vp-hold-row span {
+    min-height: 18px;
+    border-width: 1px;
+    font-size: 0.46rem;
+  }
+
+  .vp-card {
+    min-height: clamp(68px, 27vw, 92px);
+    border-width: 1px;
+  }
+
+  .vp-corner {
+    font-size: clamp(0.56rem, 3.4vw, 0.9rem);
+  }
+
+  .vp-corner.top {
+    top: 4px;
+    left: 4px;
+  }
+
+  .vp-corner.bottom {
+    right: 4px;
+    bottom: 4px;
+  }
+}
+
+@media (min-width: 621px) {
+  .vp-hold-row span {
+    justify-self: center;
+    min-width: 74px;
+    min-height: 28px;
+  }
+
+  .vp-card {
+    min-height: 218px;
+  }
+}
+
+@media (max-width: 620px) {
+  .vp-card {
+    min-width: 0;
   }
 
   .vp-face {

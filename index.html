@@ -723,7 +723,6 @@
                     <div class="slot-bonus-plays" aria-label="Bonus play types">
                       <span>Free Throws</span>
                       <span>Heat Check</span>
-                      <span>Ring Chase</span>
                       <span>Hoop Jackpot</span>
                     </div>
                     <div class="slot-bonus-screen" id="slotBonusScreen" aria-live="polite" hidden>
@@ -844,7 +843,7 @@
                           <li>Set bankroll, spin size, RTP, and volatility.</li>
                           <li>Spin the 5 active row lines; credits subtract the bet and add modeled wins.</li>
                           <li>Bonus pots are scatter-style meters, not row-line symbol matches.</li>
-                          <li>When a pot fills, it launches a basketball bonus play with its own award roll.</li>
+                          <li>Bonus plays launch from three independent randomizers, not from filled pot counts.</li>
                         </ol>
                       </section>
                       <section class="slot-reference-panel">
@@ -860,8 +859,8 @@
                           separate ways-to-win rule set, like 243 ways, and this machine is not using that mode yet.
                         </p>
                         <p>
-                          The three pots save between visits and advance from independent randomizers after spins. They can
-                          trigger a bonus without needing matching symbols on the same row.
+                          The three pots save between visits and are visual trackers only. Free Throws, Heat Check, and Hoop
+                          Jackpot each use their own randomizer after a spin, so a full pot does not force or block a bonus.
                         </p>
                       </section>
                     </div>
@@ -930,6 +929,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js?v=46" defer></script>
+    <script src="app.js?v=47" defer></script>
   </body>
 </html>

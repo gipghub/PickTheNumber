@@ -57,19 +57,25 @@ const SLOT_POTS = {
     target: 6,
     label: "Free Throw Pot",
     collectors: ["bonus-free"],
-    bonusKeys: ["freeThrows", "ringChase"],
+    bonusKeys: ["freeThrows"],
+    randomizerChance: 0.035,
+    randomizerSymbol: "bonus-free",
   },
   heatCheck: {
     target: 5,
     label: "Heat Check Pot",
     collectors: ["fire-seven", "wild"],
-    bonusKeys: ["heatCheck", "freeThrows"],
+    bonusKeys: ["heatCheck"],
+    randomizerChance: 0.018,
+    randomizerSymbol: "fire-seven",
   },
   championship: {
     target: 4,
     label: "Championship Pot",
     collectors: ["ring", "jackpot-hoop"],
-    bonusKeys: ["hoopJackpot", "ringChase"],
+    bonusKeys: ["hoopJackpot"],
+    randomizerChance: 0.006,
+    randomizerSymbol: "jackpot-hoop",
   },
 };
 const CRAPS_BET_LABELS = {
@@ -1377,20 +1383,39 @@ function advanceSlotPots(reelSymbols = getCurrentSlotSymbols()) {
     const pot = SLOT_POTS[collection.key];
     if (!pot) return;
 
-    const nextValue = state.slotPots[collection.key] + collection.increment;
-    if (nextValue >= pot.target) {
-      const bonus = rollSlotBonus(pot);
-      state.slotPots[collection.key] = 0;
-      events.push({ type: "trigger", ...collection, label: pot.label, bonus });
-      return;
-    }
-
+    const nextValue = clampPotValue(state.slotPots[collection.key] + collection.increment, pot.target);
     state.slotPots[collection.key] = nextValue;
     events.push({ type: "advance", ...collection, label: pot.label, value: nextValue });
   });
 
-  state.slotLastPotEvents = events;
+  state.slotLastPotEvents = [...events, ...rollSlotBonusRandomizers()];
   saveSlotPots();
+}
+
+function rollSlotBonusRandomizers() {
+  const volatilityScale = {
+    low: 0.85,
+    medium: 1,
+    high: 1.25,
+  };
+  const scale = volatilityScale[elements.slotVolatility.value] || volatilityScale.medium;
+
+  return Object.entries(SLOT_POTS).flatMap(([key, pot]) => {
+    const chance = (pot.randomizerChance || 0) * scale;
+    if (!chance || Math.random() > chance) return [];
+
+    return [
+      {
+        type: "trigger",
+        key,
+        label: pot.label,
+        symbol: pot.randomizerSymbol || pot.collectors?.[0] || "basketball",
+        increment: 0,
+        randomizer: true,
+        bonus: rollSlotBonus(pot),
+      },
+    ];
+  });
 }
 
 function rollSlotPayout(rtp) {
