@@ -1979,8 +1979,12 @@ function hideSlotBonusScreen() {
 
 function setSlotPot(element, count, target, triggered = false) {
   const fill = triggered ? 100 : Math.min(100, Math.round((count / target) * 100));
+  const iconScale = 0.88 + fill * 0.0022;
   const label = triggered ? "Bonus randomizer hit" : count >= target ? "Pool full" : "Pool building";
   element.style.setProperty("--pot-fill", `${fill}%`);
+  element.style.setProperty("--pool-icon-scale", iconScale.toFixed(3));
+  element.style.setProperty("--pool-icon-breathe-scale", (iconScale + 0.08).toFixed(3));
+  element.style.setProperty("--pool-icon-pop-scale", (iconScale + 0.18).toFixed(3));
   element.querySelector("b").setAttribute("aria-label", label);
   const visibleValue = element.querySelector(".slot-pot-value");
   if (visibleValue) visibleValue.textContent = label;

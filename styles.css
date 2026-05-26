@@ -271,6 +271,9 @@
   --pool-b: #ef6728;
   --pool-glow: rgba(248, 201, 87, 0.58);
   --pool-symbol: url("./assets/slots/basketball.png");
+  --pool-icon-scale: 0.88;
+  --pool-icon-breathe-scale: 0.96;
+  --pool-icon-pop-scale: 1.06;
   position: relative;
   min-height: 86px;
   display: grid;
@@ -332,7 +335,7 @@
   height: 34px;
   background: var(--pool-symbol) center / contain no-repeat;
   opacity: 0.88;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(var(--pool-icon-scale));
   filter:
     drop-shadow(0 0 8px var(--pool-glow))
     drop-shadow(0 0 14px rgba(255, 255, 255, 0.16));
@@ -420,6 +423,10 @@
   animation: slotPotCollectPulse 760ms ease both;
 }
 
+.slot-pot.is-collecting::after {
+  animation: slotPoolCollectPop 760ms ease both;
+}
+
 .slot-collect-flyer {
   position: fixed;
   z-index: 100;
@@ -467,25 +474,25 @@
 @keyframes slotPoolFloat {
   0%,
   100% {
-    transform: translateX(-50%) translateY(0) rotate(-5deg) scale(0.94);
+    transform: translateX(-50%) translateY(0) rotate(-5deg) scale(var(--pool-icon-scale));
   }
 
   50% {
-    transform: translateX(-50%) translateY(-5px) rotate(6deg) scale(1.04);
+    transform: translateX(-50%) translateY(-5px) rotate(6deg) scale(var(--pool-icon-breathe-scale));
   }
 }
 
 @keyframes slotPoolFlicker {
   0%,
   100% {
-    transform: translateX(-50%) scale(0.94);
+    transform: translateX(-50%) scale(var(--pool-icon-scale));
     filter:
       drop-shadow(0 0 8px var(--pool-glow))
       drop-shadow(0 0 12px rgba(255, 255, 255, 0.12));
   }
 
   45% {
-    transform: translateX(-50%) scale(1.08);
+    transform: translateX(-50%) scale(var(--pool-icon-breathe-scale));
     filter:
       drop-shadow(0 0 16px var(--pool-glow))
       drop-shadow(0 0 22px rgba(255, 221, 87, 0.34));
@@ -495,14 +502,29 @@
 @keyframes slotPoolPulse {
   0%,
   100% {
-    transform: translateX(-50%) scale(0.94);
+    transform: translateX(-50%) scale(var(--pool-icon-scale));
   }
 
   50% {
-    transform: translateX(-50%) scale(1.1);
+    transform: translateX(-50%) scale(var(--pool-icon-breathe-scale));
     filter:
       drop-shadow(0 0 16px var(--pool-glow))
       drop-shadow(0 0 26px rgba(159, 232, 255, 0.42));
+  }
+}
+
+@keyframes slotPoolCollectPop {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0) scale(var(--pool-icon-scale));
+  }
+
+  42% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-6px) scale(var(--pool-icon-pop-scale));
+    filter:
+      drop-shadow(0 0 18px var(--pool-glow))
+      drop-shadow(0 0 24px rgba(255, 255, 255, 0.34));
   }
 }
 
