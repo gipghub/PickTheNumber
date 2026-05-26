@@ -1,10 +1,10 @@
-const CACHE_NAME = "pick-the-number-v50";
+const CACHE_NAME = "pick-the-number-v51";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css",
   "./src/core.js",
-  "./app.js?v=50",
+  "./app.js?v=51",
   "./manifest.webmanifest",
   "./icons/icon.svg",
   "./assets/slots/arena.png",

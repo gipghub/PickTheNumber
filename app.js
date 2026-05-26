@@ -22,6 +22,12 @@ const SLOT_PAY_OUTCOMES = [
   { label: "Heat check feature", multiplier: 50, chance: 0.0015 },
   { label: "Progressive shot", multiplier: 100, chance: 0.0005 },
 ];
+const SLOT_PROGRESSIVE_TIERS = {
+  mini: { label: "Mini", drip: 0.03, boost: 0.12, chance: 0.55 },
+  minor: { label: "Minor", drip: 0.015, boost: 0.22, chance: 0.28 },
+  major: { label: "Major", drip: 0.006, boost: 0.65, chance: 0.13 },
+  grand: { label: "Grand", drip: 0.002, boost: 1.4, chance: 0.04 },
+};
 const SLOT_BONUS_PLAYS = {
   freeThrows: {
     title: "Free Throws",
@@ -227,6 +233,8 @@ const state = {
   slotTotalWon: 0,
   slotSpinCount: 0,
   slotLastOutcome: null,
+  slotProgressives: null,
+  slotLastProgressiveChanges: [],
   slotRulesLastFocus: null,
   slotProfileLastFocus: null,
   serviceWorkerRefreshing: false,
@@ -1474,6 +1482,7 @@ function loadSlotSession() {
     state.slotTotalWon = Number.isFinite(Number(saved.totalWon)) ? Math.max(0, Number(saved.totalWon)) : 0;
     state.slotSpinCount = Number.isFinite(Number(saved.spinCount)) ? Math.max(0, Math.floor(Number(saved.spinCount))) : 0;
     state.slotLastOutcome = saved.lastOutcome || null;
+    state.slotProgressives = normalizeSlotProgressives(saved.progressives, currentSlotPlan());
   } catch {
     resetSlotSessionFromInputs(false);
   }
@@ -1489,6 +1498,7 @@ function saveSlotSession() {
         totalWon: state.slotTotalWon,
         spinCount: state.slotSpinCount,
         lastOutcome: state.slotLastOutcome,
+        progressives: state.slotProgressives,
       }),
     );
   } catch {
@@ -1502,7 +1512,32 @@ function resetSlotSessionFromInputs(shouldSave = true) {
   state.slotTotalWon = 0;
   state.slotSpinCount = 0;
   state.slotLastOutcome = null;
+  state.slotProgressives = initialSlotProgressives(currentSlotPlan());
+  state.slotLastProgressiveChanges = [];
   if (shouldSave) saveSlotSession();
+}
+
+function initialSlotProgressives(plan) {
+  return {
+    grand: roundMoney(Math.max(5000, plan.winGoal * 250)),
+    major: roundMoney(Math.max(1000, plan.winGoal * 50)),
+    minor: roundMoney(Math.max(100, plan.stopLoss * 4)),
+    mini: roundMoney(Math.max(25, plan.stopLoss)),
+  };
+}
+
+function normalizeSlotProgressives(saved, plan) {
+  const base = initialSlotProgressives(plan);
+  return Object.fromEntries(
+    Object.keys(SLOT_PROGRESSIVE_TIERS).map((key) => {
+      const savedValue = Number(saved?.[key]);
+      return [key, roundMoney(Math.max(base[key], Number.isFinite(savedValue) ? savedValue : base[key]))];
+    }),
+  );
+}
+
+function syncSlotProgressives(plan) {
+  state.slotProgressives = normalizeSlotProgressives(state.slotProgressives, plan);
 }
 
 function loadSlotPots() {
@@ -1598,7 +1633,32 @@ function settleSlotWager() {
   state.slotTotalWon = roundMoney(state.slotTotalWon + win);
   state.slotSpinCount += 1;
   state.slotLastOutcome = outcome.label;
+  advanceSlotProgressives(bet);
   saveSlotSession();
+}
+
+function advanceSlotProgressives(bet) {
+  syncSlotProgressives(currentSlotPlan());
+  const volatilityScale = { low: 0.82, medium: 1, high: 1.24 }[elements.slotVolatility.value] || 1;
+  const featuredTier = rollProgressiveTier();
+
+  state.slotLastProgressiveChanges = [featuredTier];
+  Object.entries(SLOT_PROGRESSIVE_TIERS).forEach(([key, tier]) => {
+    const baseDrip = Math.max(0.01, bet * tier.drip * volatilityScale);
+    const boost = key === featuredTier ? Math.max(0.05, bet * tier.boost * volatilityScale) : 0;
+    state.slotProgressives[key] = roundMoney((state.slotProgressives[key] || 0) + baseDrip + boost);
+  });
+}
+
+function rollProgressiveTier() {
+  const roll = Math.random();
+  let cumulative = 0;
+  return (
+    Object.entries(SLOT_PROGRESSIVE_TIERS).find(([, tier]) => {
+      cumulative += tier.chance;
+      return roll <= cumulative;
+    })?.[0] || "mini"
+  );
 }
 
 function settleSlotBonusWins() {
@@ -1707,6 +1767,7 @@ function renderVideoPokerCard(card, isHeld, index) {
 }
 
 function renderSlotVisual(plan, playResultSound = false) {
+  syncSlotProgressives(plan);
   const reelSymbols = state.slotVisibleSymbols.length ? state.slotVisibleSymbols : buildSlotReelSymbols();
   state.slotVisibleSymbols = reelSymbols;
 
@@ -1718,10 +1779,38 @@ function renderSlotVisual(plan, playResultSound = false) {
   elements.slotStopMeter.textContent = `$${plan.stopLoss.toFixed(0)} stop`;
   elements.slotBetBadge.textContent = `$${Number(elements.slotBet.value || 0).toFixed(2)}`;
   updateSlotBonusMeters(playResultSound);
-  elements.slotGrandMeter.textContent = `$${Math.max(5000, plan.winGoal * 250).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  elements.slotMajorMeter.textContent = `$${Math.max(1000, plan.winGoal * 50).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  elements.slotMinorMeter.textContent = `$${Math.max(100, plan.stopLoss * 4).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  elements.slotMiniMeter.textContent = `$${Math.max(25, plan.stopLoss).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  renderSlotProgressives(playResultSound);
+}
+
+function renderSlotProgressives(playResultSound = false) {
+  const meters = {
+    grand: elements.slotGrandMeter,
+    major: elements.slotMajorMeter,
+    minor: elements.slotMinorMeter,
+    mini: elements.slotMiniMeter,
+  };
+  const changed = new Set(state.slotLastProgressiveChanges);
+
+  Object.entries(meters).forEach(([key, meter]) => {
+    meter.textContent = formatProgressiveMoney(state.slotProgressives[key]);
+    const panel = meter.parentElement;
+    panel?.classList.toggle("is-progressive-hit", playResultSound && changed.has(key));
+    panel?.classList.toggle("is-grand-flash", playResultSound && key === "grand" && changed.has(key));
+    if (playResultSound && changed.has(key)) {
+      window.setTimeout(() => {
+        panel?.classList.remove("is-progressive-hit", "is-grand-flash");
+      }, key === "grand" ? 1600 : 950);
+    }
+  });
+
+  if (playResultSound) state.slotLastProgressiveChanges = [];
+}
+
+function formatProgressiveMoney(value) {
+  return `$${Number(value || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 function buildSlotReelSymbols() {
