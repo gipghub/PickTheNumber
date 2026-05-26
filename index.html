@@ -770,6 +770,8 @@
                         <span>3</span>
                         <span>4</span>
                         <span>5</span>
+                        <span>D</span>
+                        <span>D</span>
                       </div>
                       <div class="slot-reels" id="slotReels"></div>
                       <div class="slot-line-labels right" aria-hidden="true">
@@ -778,8 +780,12 @@
                         <span>3</span>
                         <span>4</span>
                         <span>5</span>
+                        <span>D</span>
+                        <span>D</span>
                       </div>
                       <div class="slot-paylines" aria-hidden="true">
+                        <i></i>
+                        <i></i>
                         <i></i>
                         <i></i>
                         <i></i>
@@ -842,6 +848,7 @@
                         <dl class="slot-pay-chart">
                           <div><dt>Single line hit</dt><dd>1x bet</dd></div>
                           <div><dt>Double line hit</dt><dd>2x bet</dd></div>
+                          <div><dt>Diagonal line hit</dt><dd>3x bet</dd></div>
                           <div><dt>Full court line</dt><dd>5x bet</dd></div>
                           <div><dt>Wild streak</dt><dd>10x bet</dd></div>
                           <div><dt>Free throw feature</dt><dd>20x bet</dd></div>
@@ -853,7 +860,7 @@
                         <h3>How To Play</h3>
                         <ol class="slot-how-list">
                           <li>Set bankroll, spin size, RTP, and volatility.</li>
-                          <li>Spin the 5 active row lines; credits subtract the bet and add modeled wins.</li>
+                          <li>Spin 7 active hit lines: 5 horizontal rows plus 2 diagonals.</li>
                           <li>Bonus pots are scatter-style meters, not row-line symbol matches.</li>
                           <li>Bonus plays launch from three independent randomizers, not from filled pot counts.</li>
                           <li>Progressive labels grow for cabinet feel; they do not control the randomizer odds.</li>
@@ -863,13 +870,14 @@
                         <h3>Line Rules</h3>
                         <div class="slot-rule-tags">
                           <span>5 row lines</span>
-                          <span>No diagonals</span>
+                          <span>2 diagonals</span>
                           <span>No ways mode</span>
                           <span>Scatter bonus pots</span>
                         </div>
                         <p>
-                          Base wins are modeled on the five horizontal rows. A symbol in any spot in a column would be a
-                          separate ways-to-win rule set, like 243 ways, and this machine is not using that mode yet.
+                          Base wins are modeled on five horizontal rows plus two corner-to-corner diagonals. A symbol in any
+                          spot in a column would be a separate ways-to-win rule set, like 243 ways, and this machine is not
+                          using that mode yet.
                         </p>
                         <p>
                           The three pots save between visits and are visual trackers only. Free Throws, Heat Check, and Hoop
@@ -1050,6 +1058,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js?v=52" defer></script>
+    <script src="app.js?v=53" defer></script>
   </body>
 </html>

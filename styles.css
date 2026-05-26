@@ -1149,7 +1149,7 @@
   bottom: 16px;
   z-index: 5;
   display: grid;
-  grid-template-rows: repeat(5, minmax(0, 1fr));
+  grid-template-rows: repeat(7, minmax(0, 1fr));
   align-items: center;
   pointer-events: none;
 }
@@ -1173,6 +1173,13 @@
   color: #f8c957;
   font-size: 0.78rem;
   font-weight: 900;
+}
+
+.slot-line-labels span:nth-child(n + 6) {
+  border-color: #72e2ff;
+  color: #72e2ff;
+  font-size: 0.68rem;
+  box-shadow: 0 0 10px rgba(114, 226, 255, 0.42);
 }
 
 .slot-paylines {
@@ -1210,6 +1217,26 @@
 
 .slot-paylines i:nth-child(5) {
   top: 90%;
+}
+
+.slot-paylines i:nth-child(6),
+.slot-paylines i:nth-child(7) {
+  left: 1%;
+  right: auto;
+  top: 50%;
+  width: 138%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(114, 226, 255, 0.84), transparent);
+  box-shadow: 0 0 12px rgba(114, 226, 255, 0.68);
+  transform-origin: center;
+}
+
+.slot-paylines i:nth-child(6) {
+  transform: translateX(-14%) rotate(27deg);
+}
+
+.slot-paylines i:nth-child(7) {
+  transform: translateX(-14%) rotate(-27deg);
 }
 
 .slot-machine.basketball-slot-machine .slot-dashboard {
@@ -1849,6 +1876,10 @@ body.slot-profile-opened {
     width: 18px;
     height: 18px;
     font-size: 0.54rem;
+  }
+
+  .slot-line-labels span:nth-child(n + 6) {
+    font-size: 0.48rem;
   }
 
   .slot-paylines {

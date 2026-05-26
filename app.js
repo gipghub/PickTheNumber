@@ -13,10 +13,11 @@ const SLOT_SPIN_DURATION_MS = 1300;
 const SLOT_SETTLE_DURATION_MS = 650;
 const SLOT_BASE_RTP = 98;
 const SLOT_PAY_OUTCOMES = [
-  { label: "No line win", multiplier: 0, chance: 0.63 },
-  { label: "Single line hit", multiplier: 1, chance: 0.23 },
-  { label: "Double line hit", multiplier: 2, chance: 0.08 },
-  { label: "Full court line", multiplier: 5, chance: 0.035 },
+  { label: "No line win", multiplier: 0, chance: 0.61 },
+  { label: "Single line hit", multiplier: 1, chance: 0.225 },
+  { label: "Double line hit", multiplier: 2, chance: 0.085 },
+  { label: "Diagonal line hit", multiplier: 3, chance: 0.018 },
+  { label: "Full court line", multiplier: 5, chance: 0.036 },
   { label: "Wild streak", multiplier: 10, chance: 0.017 },
   { label: "Free throw feature", multiplier: 20, chance: 0.006 },
   { label: "Heat check feature", multiplier: 50, chance: 0.0015 },
