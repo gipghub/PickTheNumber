@@ -112,6 +112,20 @@ test("video poker helper identifies premium hands and duplicate cards", () => {
   assert.equal(Core.hasDuplicateCards([card("A", "♠"), card("A", "♠")]), true);
 });
 
+test("video poker variants adjust wild-card hold advice", () => {
+  const deuces = [card("2", "♠"), card("2", "♥"), card("A", "♠"), card("K", "♠"), card("7", "♦")];
+  assert.equal(Core.videoPokerHold(deuces, "deucesWild").title, "Hold 2 wild deuces");
+
+  const joker = [
+    { rank: "Joker", suit: "★", value: 0 },
+    card("K", "♠"),
+    card("K", "♥"),
+    card("K", "♦"),
+    card("4", "♣"),
+  ];
+  assert.equal(Core.videoPokerHold(joker, "jokersWild").title, "Hold joker with trips");
+});
+
 test("three card poker uses the queen-six-four play threshold", () => {
   const play = Core.threeCardDecision([card("Q", "♠"), card("6", "♥"), card("4", "♦")]);
   const fold = Core.threeCardDecision([card("Q", "♠"), card("6", "♥"), card("3", "♦")]);

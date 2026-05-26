@@ -78,6 +78,108 @@ const SLOT_POTS = {
     randomizerSymbol: "jackpot-hoop",
   },
 };
+const VIDEO_POKER_VARIANTS = {
+  jacksOrBetter: {
+    label: "Jacks or Better",
+    subtitle: "Classic 9/6 hold helper",
+    includeJoker: false,
+    defaults: [
+      ["A", "♠"],
+      ["K", "♠"],
+      ["Q", "♠"],
+      ["J", "♠"],
+      ["10", "♠"],
+    ],
+    paytableNote: "The max-credit royal flush line is the red 4000-credit jackpot column.",
+    rows: [
+      ["Royal Flush", [250, 500, 750, 1000, 4000]],
+      ["Straight Flush", [50, 100, 150, 200, 250]],
+      ["4 of a Kind", [25, 50, 75, 100, 125]],
+      ["Full House", [9, 18, 27, 36, 45]],
+      ["Flush", [6, 12, 18, 24, 30]],
+      ["Straight", [4, 8, 12, 16, 20]],
+      ["3 of a Kind", [3, 6, 9, 12, 15]],
+      ["Two Pair", [2, 4, 6, 8, 10]],
+      ["Jacks or Better", [1, 2, 3, 4, 5]],
+    ],
+  },
+  jokersWild: {
+    label: "Jokers Wild",
+    subtitle: "Wild joker, kings-or-better style",
+    includeJoker: true,
+    defaults: [
+      ["Joker", "★"],
+      ["K", "♠"],
+      ["K", "♥"],
+      ["9", "♦"],
+      ["4", "♣"],
+    ],
+    paytableNote: "The joker works as a wild card, so five of a kind and joker royal lines become part of the game.",
+    rows: [
+      ["Natural Royal", [500, 1000, 1500, 2000, 4000]],
+      ["Five of a Kind", [200, 400, 600, 800, 1000]],
+      ["Joker Royal", [100, 200, 300, 400, 500]],
+      ["Straight Flush", [50, 100, 150, 200, 250]],
+      ["4 of a Kind", [20, 40, 60, 80, 100]],
+      ["Full House", [7, 14, 21, 28, 35]],
+      ["Flush", [5, 10, 15, 20, 25]],
+      ["Straight", [3, 6, 9, 12, 15]],
+      ["3 of a Kind", [2, 4, 6, 8, 10]],
+      ["Kings or Better", [1, 2, 3, 4, 5]],
+    ],
+  },
+  deucesWild: {
+    label: "Deuces Wild",
+    subtitle: "All 2s are wild",
+    includeJoker: false,
+    defaults: [
+      ["2", "♠"],
+      ["2", "♥"],
+      ["A", "♠"],
+      ["K", "♠"],
+      ["7", "♦"],
+    ],
+    paytableNote: "Any 2 is wild. The helper favors protecting deuces before chasing ordinary pairs.",
+    rows: [
+      ["Natural Royal", [800, 1600, 2400, 3200, 4000]],
+      ["Four Deuces", [200, 400, 600, 800, 1000]],
+      ["Wild Royal", [25, 50, 75, 100, 125]],
+      ["Five of a Kind", [15, 30, 45, 60, 75]],
+      ["Straight Flush", [9, 18, 27, 36, 45]],
+      ["4 of a Kind", [5, 10, 15, 20, 25]],
+      ["Full House", [3, 6, 9, 12, 15]],
+      ["Flush", [2, 4, 6, 8, 10]],
+      ["Straight", [2, 4, 6, 8, 10]],
+      ["3 of a Kind", [1, 2, 3, 4, 5]],
+    ],
+  },
+  doubleBonus: {
+    label: "Double Bonus Poker",
+    subtitle: "Bonus-heavy quads strategy",
+    includeJoker: false,
+    defaults: [
+      ["A", "♠"],
+      ["A", "♥"],
+      ["7", "♠"],
+      ["4", "♦"],
+      ["9", "♣"],
+    ],
+    paytableNote: "Double Bonus gives extra weight to four aces and other quads, so the helper protects more made pairs.",
+    rows: [
+      ["Royal Flush", [250, 500, 750, 1000, 4000]],
+      ["Straight Flush", [50, 100, 150, 200, 250]],
+      ["4 Aces", [160, 320, 480, 640, 800]],
+      ["4 2s, 3s, or 4s", [80, 160, 240, 320, 400]],
+      ["4 5s thru Kings", [50, 100, 150, 200, 250]],
+      ["Full House", [9, 18, 27, 36, 45]],
+      ["Flush", [7, 14, 21, 28, 35]],
+      ["Straight", [5, 10, 15, 20, 25]],
+      ["3 of a Kind", [3, 6, 9, 12, 15]],
+      ["Two Pair", [1, 2, 3, 4, 5]],
+      ["Jacks or Better", [1, 2, 3, 4, 5]],
+    ],
+  },
+};
 const CRAPS_BET_LABELS = {
   passLine: "Pass Line",
   dontPass: "Don't Pass",
@@ -107,6 +209,7 @@ const state = {
   game: "powerball",
   draws: [],
   deferredInstallPrompt: null,
+  videoPokerVariant: "jacksOrBetter",
   videoPokerHeldIndexes: null,
   crapsBets: {},
   crapsBetAnchors: {},
@@ -167,6 +270,10 @@ const elements = {
   bjDealButton: $("#bjDealButton"),
   videoPokerCards: $("#videoPokerCards"),
   videoPokerAdvice: $("#videoPokerAdvice"),
+  videoPokerVariant: $("#videoPokerVariant"),
+  videoPokerTitle: $("#videoPokerTitle"),
+  videoPokerSubtitle: $("#videoPokerSubtitle"),
+  videoPokerVariantNote: $("#videoPokerVariantNote"),
   videoPokerHandGraphic: $("#videoPokerHandGraphic"),
   videoPokerHoldGraphic: $("#videoPokerHoldGraphic"),
   videoPokerMachineMessage: $("#videoPokerMachineMessage"),
@@ -737,8 +844,9 @@ function randomItem(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-function shuffledDeck() {
+function shuffledDeck(includeJoker = false) {
   const deck = SUITS.flatMap((suit) => RANKS.map((rank) => ({ rank, suit, value: RANK_VALUE[rank] })));
+  if (includeJoker) deck.push({ rank: "Joker", suit: "★", value: 0 });
   for (let index = deck.length - 1; index > 0; index -= 1) {
     const swapIndex = Math.floor(Math.random() * (index + 1));
     [deck[index], deck[swapIndex]] = [deck[swapIndex], deck[index]];
@@ -746,8 +854,8 @@ function shuffledDeck() {
   return deck;
 }
 
-function randomCards(count) {
-  return shuffledDeck().slice(0, count);
+function randomCards(count, includeJoker = false) {
+  return shuffledDeck(includeJoker).slice(0, count);
 }
 
 function setCardPickerCards(container, prefix, cards) {
@@ -760,13 +868,7 @@ function setCardPickerCards(container, prefix, cards) {
 }
 
 function setupCardPickers() {
-  renderCardPicker(elements.videoPokerCards, 5, "vp", [
-    ["A", "♠"],
-    ["K", "♠"],
-    ["Q", "♠"],
-    ["J", "♠"],
-    ["10", "♠"],
-  ]);
+  renderVideoPokerCardPicker();
   renderCardPicker(elements.threeCardCards, 3, "tc", [
     ["Q", "♠"],
     ["6", "♥"],
@@ -777,6 +879,9 @@ function setupCardPickers() {
     state.videoPokerHeldIndexes = null;
     playGameSound("videoPoker", "card");
     updateVideoPokerAdvice();
+  });
+  elements.videoPokerVariant.addEventListener("change", () => {
+    setVideoPokerVariant(elements.videoPokerVariant.value, true);
   });
   elements.videoPokerHandGraphic.addEventListener("click", (event) => {
     const cardButton = event.target.closest("[data-video-poker-card]");
@@ -796,17 +901,21 @@ function setupCardPickers() {
   $("[data-video-poker-control='bet']").addEventListener("click", () => setVideoPokerBet());
   $("[data-video-poker-control='cashout']").addEventListener("click", () => cashOutVideoPoker());
   elements.threeCardDealButton.addEventListener("click", () => dealThreeCardHand());
+  setVideoPokerVariant(state.videoPokerVariant, false);
   updateVideoPokerAdvice();
   updateThreeCardAdvice();
 }
 
 function renderCardPicker(container, count, prefix, defaults) {
+  const includeJoker = prefix === "vp" && currentVideoPokerProfile().includeJoker;
+  const ranks = includeJoker ? ["Joker", ...RANKS] : RANKS;
+  const suits = includeJoker ? ["★", ...SUITS] : SUITS;
   container.innerHTML = Array.from({ length: count }, (_, index) => {
     const [defaultRank, defaultSuit] = defaults[index] || ["A", "♠"];
-    const rankOptions = RANKS.map(
+    const rankOptions = ranks.map(
       (rank) => `<option value="${rank}" ${rank === defaultRank ? "selected" : ""}>${rank}</option>`,
     ).join("");
-    const suitOptions = SUITS.map(
+    const suitOptions = suits.map(
       (suit) => `<option value="${suit}" ${suit === defaultSuit ? "selected" : ""}>${suit}</option>`,
     ).join("");
     return `
@@ -823,8 +932,50 @@ function getCards(container, prefix) {
   const controls = Array.from(container.querySelectorAll(`[data-card-rank^="${prefix}"]`));
   return controls.map((rankSelect, index) => {
     const suitSelect = container.querySelector(`[data-card-suit="${prefix}-${index}"]`);
-    return { rank: rankSelect.value, suit: suitSelect.value, value: RANK_VALUE[rankSelect.value] };
+    const rank = rankSelect.value;
+    const suit = rank === "Joker" ? "★" : suitSelect.value === "★" ? "♠" : suitSelect.value;
+    return { rank, suit, value: RANK_VALUE[rank] || 0 };
   });
+}
+
+function currentVideoPokerProfile() {
+  return VIDEO_POKER_VARIANTS[state.videoPokerVariant] || VIDEO_POKER_VARIANTS.jacksOrBetter;
+}
+
+function renderVideoPokerCardPicker() {
+  renderCardPicker(elements.videoPokerCards, 5, "vp", currentVideoPokerProfile().defaults);
+}
+
+function setVideoPokerVariant(variant, refreshCards = true) {
+  state.videoPokerVariant = VIDEO_POKER_VARIANTS[variant] ? variant : "jacksOrBetter";
+  const profile = currentVideoPokerProfile();
+  elements.videoPokerVariant.value = state.videoPokerVariant;
+  elements.videoPokerTitle.textContent = `${profile.label} Hold Helper`;
+  elements.videoPokerSubtitle.textContent = profile.subtitle;
+  elements.videoPokerVariantNote.textContent = profile.subtitle;
+  elements.videoPokerPaytable.setAttribute("aria-label", `${profile.label} paytable`);
+  renderVideoPokerPaytable();
+  if (refreshCards) {
+    renderVideoPokerCardPicker();
+    state.videoPokerHeldIndexes = null;
+    playGameSound("ui", "tap");
+  }
+  updateVideoPokerAdvice();
+}
+
+function renderVideoPokerPaytable() {
+  const rows = currentVideoPokerProfile().rows;
+  const labels = rows.map(([label]) => `<span>${label}</span>`).join("");
+  const columns = [0, 1, 2, 3, 4]
+    .map(
+      (column) => `
+        <div class="vp-pay-col ${column === 4 ? "max-bet" : ""}">
+          ${rows.map(([, pays]) => `<span>${pays[column]}</span>`).join("")}
+        </div>
+      `,
+    )
+    .join("");
+  elements.videoPokerPaytable.innerHTML = `<div class="vp-pay-labels">${labels}</div>${columns}`;
 }
 
 function updateVideoPokerAdvice() {
@@ -836,15 +987,15 @@ function updateVideoPokerAdvice() {
       "<strong>Choose five unique cards.</strong><br>The same card cannot appear twice in a real hand.";
     return;
   }
-  const result = Core.videoPokerHold(cards);
+  const result = Core.videoPokerHold(cards, state.videoPokerVariant);
   const recommendedHoldIndexes = videoPokerHoldIndexes(cards, result);
   const holdIndexes = state.videoPokerHeldIndexes || recommendedHoldIndexes;
   renderVideoPokerScreen(cards, result, holdIndexes);
-  elements.videoPokerAdvice.innerHTML = `<strong>${result.title}</strong><br>${result.detail}${state.videoPokerHeldIndexes ? `<br>Selected holds: ${formatVideoPokerHoldSelection(cards, holdIndexes)}.` : ""}`;
+  elements.videoPokerAdvice.innerHTML = `<strong>${currentVideoPokerProfile().label}: ${result.title}</strong><br>${result.detail}${state.videoPokerHeldIndexes ? `<br>Selected holds: ${formatVideoPokerHoldSelection(cards, holdIndexes)}.` : ""}`;
 }
 
 function dealVideoPokerHand() {
-  setCardPickerCards(elements.videoPokerCards, "vp", randomCards(5));
+  setCardPickerCards(elements.videoPokerCards, "vp", randomCards(5, currentVideoPokerProfile().includeJoker));
   state.videoPokerHeldIndexes = null;
   playGameSound("videoPoker", "card");
   updateVideoPokerAdvice();
@@ -853,9 +1004,9 @@ function dealVideoPokerHand() {
 function drawVideoPokerHand() {
   const cards = getCards(elements.videoPokerCards, "vp");
   if (Core.hasDuplicateCards(cards)) return;
-  const holdIndexes = state.videoPokerHeldIndexes || videoPokerHoldIndexes(cards, Core.videoPokerHold(cards));
+  const holdIndexes = state.videoPokerHeldIndexes || videoPokerHoldIndexes(cards, Core.videoPokerHold(cards, state.videoPokerVariant));
   const originalCardKeys = new Set(cards.map(cardKey));
-  const replacementCards = shuffledDeck().filter((card) => !originalCardKeys.has(cardKey(card)));
+  const replacementCards = shuffledDeck(currentVideoPokerProfile().includeJoker).filter((card) => !originalCardKeys.has(cardKey(card)));
   let replacementIndex = 0;
   const drawnCards = cards.map((card, index) => {
     if (holdIndexes.has(index)) return card;
@@ -881,10 +1032,11 @@ function showVideoPokerHelp() {
 
 function openVideoPokerGameMenu() {
   playGameSound("ui", "tap");
-  showView("strategyView");
-  if (elements.playTypeBox) elements.playTypeBox.open = true;
+  const variants = Object.keys(VIDEO_POKER_VARIANTS);
+  const nextIndex = (variants.indexOf(state.videoPokerVariant) + 1) % variants.length;
+  setVideoPokerVariant(variants[nextIndex], true);
   elements.videoPokerMachineMessage.textContent = "More Games";
-  elements.videoPokerAdvice.innerHTML = "<strong>More games.</strong><br>Use the Play Type box above to switch to Blackjack, Craps, 3 Card Poker, Slots, or lottery tools.";
+  elements.videoPokerAdvice.innerHTML = `<strong>${currentVideoPokerProfile().label} selected.</strong><br>${currentVideoPokerProfile().subtitle}. Use the game selector above for a specific video poker profile.`;
 }
 
 function showVideoPokerPays() {
@@ -894,14 +1046,14 @@ function showVideoPokerPays() {
     ? "Paytable"
     : "Play 5 Credits";
   elements.videoPokerAdvice.innerHTML =
-    "<strong>Jacks or Better pays.</strong><br>The top screen shows the 5-credit paytable. The max-credit royal flush line is the red 4000-credit jackpot column.";
+    `<strong>${currentVideoPokerProfile().label} pays.</strong><br>${currentVideoPokerProfile().paytableNote}`;
 }
 
 function setVideoPokerBet() {
   playGameSound("blackjack", "chip");
   elements.videoPokerMachineMessage.textContent = "Bet 5 Credits";
   elements.videoPokerAdvice.innerHTML =
-    "<strong>Bet set to 5 credits.</strong><br>The helper assumes max-coin Jacks or Better because that is where the royal flush bonus pays properly.";
+    `<strong>Bet set to 5 credits.</strong><br>The helper assumes max-coin ${currentVideoPokerProfile().label} so the top award line is represented properly.`;
 }
 
 function cashOutVideoPoker() {
@@ -931,7 +1083,8 @@ function toggleVideoPokerHold(index) {
   const cards = getCards(elements.videoPokerCards, "vp");
   if (Core.hasDuplicateCards(cards)) return;
 
-  const currentHolds = state.videoPokerHeldIndexes || videoPokerHoldIndexes(cards, Core.videoPokerHold(cards));
+  const currentHolds =
+    state.videoPokerHeldIndexes || videoPokerHoldIndexes(cards, Core.videoPokerHold(cards, state.videoPokerVariant));
   const nextHolds = new Set(currentHolds);
   if (nextHolds.has(index)) {
     nextHolds.delete(index);
@@ -950,6 +1103,7 @@ function formatVideoPokerHoldSelection(cards, holdIndexes) {
 }
 
 function videoPokerHoldIndexes(cards, result) {
+  if (Array.isArray(result?.holds)) return new Set(result.holds);
   if (!result || !result.title || result.title === "Draw five new cards") return new Set();
   if (result.title === "Hold all five") return new Set([0, 1, 2, 3, 4]);
   if (result.title.includes("four-card flush")) return indexesMatching(cards, (card) => card.suit === mostCommon(cards, "suit"));
@@ -1532,6 +1686,15 @@ function renderGraphicCard(card) {
 }
 
 function renderVideoPokerCard(card, isHeld, index) {
+  if (card.rank === "Joker") {
+    return `
+      <button class="vp-card joker ${isHeld ? "is-held" : ""}" type="button" data-video-poker-card="${index}" aria-pressed="${isHeld}" aria-label="${isHeld ? "Release" : "Hold"} Joker">
+        <span class="vp-corner top">J<small>★</small></span>
+        <span class="vp-card-art"><b class="vp-face">Joker</b></span>
+        <span class="vp-corner bottom">J<small>★</small></span>
+      </button>
+    `;
+  }
   const isRed = card.suit === "♥" || card.suit === "♦";
   const faceLabel = ["J", "Q", "K"].includes(card.rank) ? `<b class="vp-face">${card.rank}</b>` : `<b class="vp-pip">${card.suit}</b>`;
   return `

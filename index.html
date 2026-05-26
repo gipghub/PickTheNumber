@@ -277,8 +277,18 @@
             <section class="strategy-panel" id="videoPoker">
               <div class="panel">
                 <div class="section-heading">
-                  <span>Jacks or Better Hold Helper</span>
-                  <small>High-level 9/6 strategy order</small>
+                  <span id="videoPokerTitle">Jacks or Better Hold Helper</span>
+                  <small id="videoPokerSubtitle">High-level 9/6 strategy order</small>
+                </div>
+                <div class="video-poker-game-picker">
+                  <label for="videoPokerVariant">Video poker game</label>
+                  <select id="videoPokerVariant">
+                    <option value="jacksOrBetter">Jacks or Better</option>
+                    <option value="jokersWild">Jokers Wild</option>
+                    <option value="deucesWild">Deuces Wild</option>
+                    <option value="doubleBonus">Double Bonus Poker</option>
+                  </select>
+                  <span id="videoPokerVariantNote">Classic 9/6 hold helper</span>
                 </div>
                 <div class="casino-visual video-poker-visual" aria-label="Video poker machine preview">
                   <div class="video-cabinet video-poker-cabinet">
@@ -929,6 +939,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js?v=47" defer></script>
+    <script src="app.js?v=48" defer></script>
   </body>
 </html>

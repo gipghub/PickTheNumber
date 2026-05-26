@@ -384,10 +384,22 @@
     return unique.size !== cards.length;
   }
 
-  function videoPokerHold(cards) {
+  function result(title, detail, holds = []) {
+    return { title, detail, holds };
+  }
+
+  function cardIndexes(cards, predicate) {
+    return cards.reduce((indexes, card, index) => {
+      if (predicate(card, index)) indexes.push(index);
+      return indexes;
+    }, []);
+  }
+
+  function videoPokerBasics(cards) {
     const rankGroups = groupBy(cards, "rank");
     const suitGroups = groupBy(cards, "suit");
-    const counts = Object.values(rankGroups).map((group) => group.length).sort((a, b) => b - a);
+    const rankedGroups = Object.entries(rankGroups).sort(([, first], [, second]) => second.length - first.length);
+    const counts = rankedGroups.map(([, group]) => group.length);
     const isFlush = Object.values(suitGroups).some((group) => group.length === 5);
     const sortedValues = [...new Set(cards.map((card) => card.value))].sort((a, b) => a - b);
     const isWheel = [2, 3, 4, 5, 14].every((value) => sortedValues.includes(value));
@@ -395,26 +407,141 @@
     const royalRanks = ["10", "J", "Q", "K", "A"];
     const isRoyal = isFlush && royalRanks.every((rank) => rankGroups[rank]?.length);
 
-    if (isRoyal) return { title: "Hold all five", detail: "Royal flush. Enjoy the extremely rare good news." };
-    if (isFlush && isStraight) return { title: "Hold all five", detail: "Straight flush." };
-    if (counts[0] === 4) return { title: "Hold four of a kind", detail: "Keep the made premium hand." };
-    if (counts[0] === 3 && counts[1] === 2) return { title: "Hold all five", detail: "Full house." };
-    if (isFlush) return { title: "Hold all five", detail: "Flush." };
-    if (isStraight) return { title: "Hold all five", detail: "Straight." };
-    if (counts[0] === 3) return { title: "Hold three of a kind", detail: "Draw two cards." };
-    if (counts[0] === 2 && counts[1] === 2) return { title: "Hold two pair", detail: "Draw one card." };
+    return { rankGroups, suitGroups, rankedGroups, counts, isFlush, isStraight, isRoyal };
+  }
+
+  function jacksOrBetterHold(cards, options = {}) {
+    const basics = videoPokerBasics(cards);
+    const { rankGroups, suitGroups, rankedGroups, counts, isFlush, isStraight, isRoyal } = basics;
+    const allCards = [0, 1, 2, 3, 4];
+    const payingPairRanks = options.highPairRanks || ["J", "Q", "K", "A"];
+    const highCardRanks = options.highCardRanks || ["J", "Q", "K", "A"];
+    const pairRanks = Object.entries(rankGroups)
+      .filter(([, group]) => group.length === 2)
+      .map(([rank]) => rank);
+
+    if (isRoyal) return result("Hold all five", "Royal flush. Enjoy the extremely rare good news.", allCards);
+    if (isFlush && isStraight) return result("Hold all five", "Straight flush.", allCards);
+    if (counts[0] === 4) {
+      const rank = rankedGroups[0][0];
+      return result("Hold four of a kind", "Keep the made premium hand.", cardIndexes(cards, (card) => card.rank === rank));
+    }
+    if (counts[0] === 3 && counts[1] === 2) return result("Hold all five", "Full house.", allCards);
+    if (isFlush) return result("Hold all five", "Flush.", allCards);
+    if (isStraight) return result("Hold all five", "Straight.", allCards);
+    if (counts[0] === 3) {
+      const rank = rankedGroups[0][0];
+      return result("Hold three of a kind", "Draw two cards.", cardIndexes(cards, (card) => card.rank === rank));
+    }
+    if (counts[0] === 2 && counts[1] === 2) {
+      return result("Hold two pair", "Draw one card.", cardIndexes(cards, (card) => pairRanks.includes(card.rank)));
+    }
 
     const highPair = Object.entries(rankGroups).find(
-      ([rank, group]) => group.length === 2 && ["J", "Q", "K", "A"].includes(rank),
+      ([rank, group]) => group.length === 2 && payingPairRanks.includes(rank),
     );
-    if (highPair) return { title: `Hold pair of ${highPair[0]}s`, detail: "Jacks or Better pays on high pairs." };
+    if (highPair) {
+      return result(
+        `Hold pair of ${highPair[0]}s`,
+        `${options.pairDetail || "Jacks or Better pays on high pairs."}`,
+        cardIndexes(cards, (card) => card.rank === highPair[0]),
+      );
+    }
+
+    if (options.holdAnyPair && pairRanks.length) {
+      return result(
+        `Hold pair of ${pairRanks[0]}s`,
+        "Double Bonus still starts many hands by protecting any made pair.",
+        cardIndexes(cards, (card) => card.rank === pairRanks[0]),
+      );
+    }
 
     const fourFlush = Object.values(suitGroups).find((group) => group.length === 4);
-    if (fourFlush) return { title: "Hold four-card flush", detail: `Keep ${formatCards(fourFlush)}.` };
+    if (fourFlush) {
+      const flushSuit = fourFlush[0].suit;
+      return result("Hold four-card flush", `Keep ${formatCards(fourFlush)}.`, cardIndexes(cards, (card) => card.suit === flushSuit));
+    }
 
-    const highCards = cards.filter((card) => ["J", "Q", "K", "A"].includes(card.rank));
-    if (highCards.length) return { title: "Hold high cards", detail: `Keep ${formatCards(highCards)} and draw the rest.` };
-    return { title: "Draw five new cards", detail: "No made hand, high pair, or strong draw." };
+    const highCards = cards.filter((card) => highCardRanks.includes(card.rank));
+    if (highCards.length) {
+      return result(
+        "Hold high cards",
+        `Keep ${formatCards(highCards)} and draw the rest.`,
+        cardIndexes(cards, (card) => highCardRanks.includes(card.rank)),
+      );
+    }
+    return result("Draw five new cards", "No made hand, high pair, or strong draw.");
+  }
+
+  function deucesWildHold(cards) {
+    const deuceIndexes = cardIndexes(cards, (card) => card.rank === "2");
+    if (deuceIndexes.length === 4) return result("Hold all five", "Four deuces is the signature premium hand.", [0, 1, 2, 3, 4]);
+    if (deuceIndexes.length) {
+      return result(
+        `Hold ${deuceIndexes.length} wild deuce${deuceIndexes.length === 1 ? "" : "s"}`,
+        "In Deuces Wild, the 2s drive the hand. Keep the wild cards and redraw around them.",
+        deuceIndexes,
+      );
+    }
+
+    const basics = videoPokerBasics(cards);
+    if (basics.isRoyal) return result("Hold all five", "Natural royal flush pays the top non-wild prize.", [0, 1, 2, 3, 4]);
+    if (basics.isFlush && basics.isStraight) return result("Hold all five", "Natural straight flush.", [0, 1, 2, 3, 4]);
+    if (basics.counts[0] === 4) {
+      const rank = basics.rankedGroups[0][0];
+      return result("Hold four of a kind", "Made quads are strong even without a deuce.", cardIndexes(cards, (card) => card.rank === rank));
+    }
+
+    const royalRanks = ["10", "J", "Q", "K", "A"];
+    const royalDraw = Object.values(basics.suitGroups).find(
+      (group) => group.filter((card) => royalRanks.includes(card.rank)).length >= 3,
+    );
+    if (royalDraw) {
+      const suit = royalDraw[0].suit;
+      return result(
+        "Hold royal draw",
+        "No deuce: chase strong suited royal cards before weak pairs.",
+        cardIndexes(cards, (card) => card.suit === suit && royalRanks.includes(card.rank)),
+      );
+    }
+
+    const fourFlush = Object.values(basics.suitGroups).find((group) => group.length === 4);
+    if (fourFlush) {
+      const suit = fourFlush[0].suit;
+      return result("Hold four-card flush", `Keep ${formatCards(fourFlush)}.`, cardIndexes(cards, (card) => card.suit === suit));
+    }
+    return result("Draw five new cards", "No deuce, made hand, or strong wild-game draw.");
+  }
+
+  function jokersWildHold(cards) {
+    const jokerIndexes = cardIndexes(cards, (card) => card.rank === "Joker");
+    if (jokerIndexes.length) {
+      const nonJokers = cards.filter((card) => card.rank !== "Joker");
+      const rankGroups = groupBy(nonJokers, "rank");
+      const bestRank = Object.entries(rankGroups).sort(([, first], [, second]) => second.length - first.length)[0];
+      if (bestRank?.[1].length >= 3) {
+        return result(
+          "Hold joker with trips",
+          "Joker Wild can turn trips into a premium four or five of a kind draw.",
+          cardIndexes(cards, (card) => card.rank === "Joker" || card.rank === bestRank[0]),
+        );
+      }
+      const highCards = cardIndexes(cards, (card) => card.rank === "Joker" || ["K", "A"].includes(card.rank));
+      return result("Hold joker", "Keep the joker with kings or aces when available; redraw the rest.", highCards);
+    }
+
+    return jacksOrBetterHold(cards, {
+      highPairRanks: ["K", "A"],
+      highCardRanks: ["K", "A"],
+      pairDetail: "Jokers Wild commonly starts paying at kings or better.",
+    });
+  }
+
+  function videoPokerHold(cards, variant = "jacksOrBetter") {
+    if (variant === "deucesWild") return deucesWildHold(cards);
+    if (variant === "jokersWild") return jokersWildHold(cards);
+    if (variant === "doubleBonus") return jacksOrBetterHold(cards, { holdAnyPair: true });
+    return jacksOrBetterHold(cards);
   }
 
   function threeCardDecision(cards) {

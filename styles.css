@@ -2506,6 +2506,34 @@ input:focus {
     #05070a;
 }
 
+.video-poker-game-picker {
+  display: grid;
+  grid-template-columns: minmax(130px, auto) minmax(190px, 260px) 1fr;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(115, 186, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(5, 20, 46, 0.72);
+  color: var(--muted);
+}
+
+.video-poker-game-picker label {
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.video-poker-game-picker select {
+  min-height: 38px;
+}
+
+.video-poker-game-picker span {
+  font-size: 0.82rem;
+}
+
 .machine-marquee,
 .slot-topper {
   min-height: 46px;
@@ -2677,6 +2705,21 @@ input:focus {
 
 .vp-card.red {
   color: #d62917;
+}
+
+.vp-card.joker {
+  color: #111827;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(253, 224, 71, 0.24), transparent 34%),
+    linear-gradient(135deg, #fffdf2, #dbeafe 52%, #fffdf2);
+}
+
+.vp-card.joker .vp-face {
+  width: min(76%, 96px);
+  aspect-ratio: 1;
+  border-color: #2563eb;
+  color: #b91c1c;
+  font-size: clamp(0.9rem, 2.4vw, 1.5rem);
 }
 
 .vp-card.is-held {
@@ -5116,6 +5159,16 @@ input:focus {
   .video-poker-cabinet {
     min-height: 0;
     padding: 8px;
+  }
+
+  .video-poker-game-picker {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .video-poker-game-picker select {
+    width: 100%;
   }
 
   .vp-screen {
