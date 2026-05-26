@@ -1979,12 +1979,13 @@ function hideSlotBonusScreen() {
 
 function setSlotPot(element, count, target, triggered = false) {
   const fill = triggered ? 100 : Math.min(100, Math.round((count / target) * 100));
-  const label = triggered ? "BONUS" : `${Math.min(count, target)}/${target}`;
+  const label = triggered ? "Bonus randomizer hit" : count >= target ? "Pool full" : "Pool building";
   element.style.setProperty("--pot-fill", `${fill}%`);
-  element.querySelector("b").setAttribute("data-count", label);
+  element.querySelector("b").setAttribute("aria-label", label);
   const visibleValue = element.querySelector(".slot-pot-value");
   if (visibleValue) visibleValue.textContent = label;
   element.classList.toggle("is-full", triggered || count >= target);
+  element.classList.toggle("is-triggered", triggered);
 }
 
 function animateSlotPotCollections(events) {
