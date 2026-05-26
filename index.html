@@ -50,6 +50,8 @@
               <button class="sub-tab" type="button" data-strategy="craps">Craps</button>
               <button class="sub-tab" type="button" data-strategy="threeCard">3 Card Poker</button>
               <button class="sub-tab" type="button" data-strategy="slots">Slots</button>
+              <button class="sub-tab" type="button" data-strategy="roulette">Roulette</button>
+              <button class="sub-tab" type="button" data-strategy="bigWheel">Big Wheel</button>
             </nav>
           </div>
         </details>
@@ -879,6 +881,114 @@
                 </div>
               </div>
             </section>
+
+            <section class="strategy-panel" id="roulette">
+              <div class="panel">
+                <div class="section-heading">
+                  <span>Roulette Bet Helper</span>
+                  <small>Wheel type, bet coverage, volatility</small>
+                </div>
+                <div class="casino-visual roulette-visual" aria-label="Roulette table preview">
+                  <div class="roulette-stage">
+                    <div class="roulette-wheel" id="rouletteWheel" aria-hidden="true">
+                      <span class="roulette-ball"></span>
+                      <strong id="rouletteResult">0</strong>
+                    </div>
+                    <div class="roulette-layout" aria-hidden="true">
+                      <span class="zero">0</span>
+                      <span class="red">1</span><span>2</span><span class="red">3</span>
+                      <span>4</span><span class="red">5</span><span>6</span>
+                      <span class="red">7</span><span>8</span><span class="red">9</span>
+                      <span>10</span><span>11</span><span class="red">12</span>
+                      <span>13</span><span class="red">14</span><span>15</span>
+                      <span class="red">16</span><span>17</span><span class="red">18</span>
+                      <span class="outside">1st 12</span><span class="outside">2nd 12</span><span class="outside">3rd 12</span>
+                      <span class="outside">Red</span><span class="outside">Black</span><span class="outside">Even</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-grid">
+                  <div class="field-stack">
+                    <label for="rouletteWheelType">Wheel</label>
+                    <select id="rouletteWheelType">
+                      <option value="european">European single-zero</option>
+                      <option value="american">American double-zero</option>
+                    </select>
+                  </div>
+                  <div class="field-stack">
+                    <label for="rouletteBetType">Bet type</label>
+                    <select id="rouletteBetType">
+                      <option value="even">Red/Black or Odd/Even</option>
+                      <option value="dozen">Dozen</option>
+                      <option value="column">Column</option>
+                      <option value="sixLine">Six line</option>
+                      <option value="corner">Corner</option>
+                      <option value="street">Street</option>
+                      <option value="split">Split</option>
+                      <option value="straight">Straight number</option>
+                    </select>
+                  </div>
+                  <div class="field-stack">
+                    <label for="rouletteUnit">Unit</label>
+                    <input id="rouletteUnit" type="number" min="1" value="5" />
+                  </div>
+                </div>
+                <div class="button-row strategy-action-row">
+                  <button class="secondary-action" id="rouletteSpinButton" type="button">Spin Wheel</button>
+                </div>
+                <div class="advice-box" id="rouletteAdvice"></div>
+              </div>
+            </section>
+
+            <section class="strategy-panel" id="bigWheel">
+              <div class="panel">
+                <div class="section-heading">
+                  <span>Big Wheel Helper</span>
+                  <small>Novelty wheel risk and hit frequency</small>
+                </div>
+                <div class="casino-visual big-wheel-visual" aria-label="Big Wheel preview">
+                  <div class="big-wheel-stage">
+                    <div class="big-wheel" id="bigWheelGraphic" aria-hidden="true">
+                      <span>$1</span>
+                      <span>$2</span>
+                      <span>$5</span>
+                      <span>$10</span>
+                      <span>$20</span>
+                      <span>Joker</span>
+                      <strong id="bigWheelResult">$1</strong>
+                    </div>
+                    <div class="big-wheel-paystrip">
+                      <span>$1 · most slices</span>
+                      <span>$2 · longer shot</span>
+                      <span>$5+</span>
+                      <span>Joker / Logo</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-grid">
+                  <div class="field-stack">
+                    <label for="bigWheelSegment">Segment</label>
+                    <select id="bigWheelSegment">
+                      <option value="one">$1</option>
+                      <option value="two">$2</option>
+                      <option value="five">$5</option>
+                      <option value="ten">$10</option>
+                      <option value="twenty">$20</option>
+                      <option value="joker">Joker</option>
+                      <option value="logo">Logo</option>
+                    </select>
+                  </div>
+                  <div class="field-stack">
+                    <label for="bigWheelUnit">Unit</label>
+                    <input id="bigWheelUnit" type="number" min="1" value="5" />
+                  </div>
+                </div>
+                <div class="button-row strategy-action-row">
+                  <button class="secondary-action" id="bigWheelSpinButton" type="button">Spin Big Wheel</button>
+                </div>
+                <div class="advice-box" id="bigWheelAdvice"></div>
+              </div>
+            </section>
           </div>
         </section>
 
@@ -940,6 +1050,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js?v=51" defer></script>
+    <script src="app.js?v=52" defer></script>
   </body>
 </html>

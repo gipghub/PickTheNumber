@@ -565,6 +565,70 @@
     return { maxUnits, detail, stopLossUnits: Math.max(2, Math.floor(maxUnits * 0.35)) };
   }
 
+  function roulettePlan(wheel = "european", betType = "even") {
+    const pockets = wheel === "american" ? 38 : 37;
+    const houseEdge = wheel === "american" ? 5.26 : 2.7;
+    const bets = {
+      straight: { label: "Straight number", covered: 1, payout: "35 to 1", volatility: "Highest" },
+      split: { label: "Split", covered: 2, payout: "17 to 1", volatility: "Very high" },
+      street: { label: "Street", covered: 3, payout: "11 to 1", volatility: "High" },
+      corner: { label: "Corner", covered: 4, payout: "8 to 1", volatility: "High" },
+      sixLine: { label: "Six line", covered: 6, payout: "5 to 1", volatility: "Medium-high" },
+      dozen: { label: "Dozen", covered: 12, payout: "2 to 1", volatility: "Medium" },
+      column: { label: "Column", covered: 12, payout: "2 to 1", volatility: "Medium" },
+      even: { label: "Red/Black or Odd/Even", covered: 18, payout: "1 to 1", volatility: "Lowest" },
+    };
+    const bet = bets[betType] || bets.even;
+    const hitRate = (bet.covered / pockets) * 100;
+    const wheelText = wheel === "american" ? "American double-zero" : "European single-zero";
+    const action = wheel === "american" ? "Prefer European if available" : "Use outside bets for longer play";
+    const detail =
+      betType === "even"
+        ? `${wheelText} wheel: even-money bets hit about ${hitRate.toFixed(1)}% of spins before zero rules. Same edge, lower volatility.`
+        : `${wheelText} wheel: ${bet.label} covers ${bet.covered} number${bet.covered === 1 ? "" : "s"} and pays ${bet.payout}, but it swings harder.`;
+
+    return {
+      action,
+      bet: bet.label,
+      detail,
+      hitRate,
+      houseEdge,
+      payout: bet.payout,
+      volatility: bet.volatility,
+    };
+  }
+
+  function bigWheelPlan(segment = "one") {
+    const pockets = 54;
+    const segments = {
+      one: { label: "$1", hits: 24, payout: 1 },
+      two: { label: "$2", hits: 15, payout: 2 },
+      five: { label: "$5", hits: 7, payout: 5 },
+      ten: { label: "$10", hits: 4, payout: 10 },
+      twenty: { label: "$20", hits: 2, payout: 20 },
+      joker: { label: "Joker", hits: 1, payout: 40 },
+      logo: { label: "Logo", hits: 1, payout: 40 },
+    };
+    const pick = segments[segment] || segments.one;
+    const hitRate = (pick.hits / pockets) * 100;
+    const returnRate = (pick.hits / pockets) * (pick.payout + 1);
+    const houseEdge = (1 - returnRate) * 100;
+    const action = segment === "one" ? "Best for longest play" : "Novelty only";
+    const detail =
+      segment === "one"
+        ? "The $1 segment usually has the most slices, so it is the least punishing Big Wheel choice."
+        : `${pick.label} pays bigger, but the slice count drops fast. Treat it as a short thrill bet, not a strategy bet.`;
+
+    return {
+      action,
+      detail,
+      hitRate,
+      houseEdge,
+      label: pick.label,
+      payout: `${pick.payout} to 1`,
+    };
+  }
+
   function slotsPlan(bankroll, bet, rtp, volatility) {
     const safeBankroll = Number(bankroll) || 0;
     const safeBet = Number(bet) || 1;
@@ -631,6 +695,7 @@
     RANK_VALUE,
     average,
     bankrollPlan,
+    bigWheelPlan,
     blackjackDecision,
     calculateLotteryStats,
     clamp,
@@ -650,6 +715,7 @@
     threeCardDecision,
     ticketShapeIsUseful,
     trimDrawsToWindow,
+    roulettePlan,
     videoPokerHold,
     weightedPick,
   };

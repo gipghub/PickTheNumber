@@ -139,6 +139,16 @@ test("budget helpers keep calculations deterministic", () => {
   assert.equal(Core.slotsPlan(100, 1, 94, "medium").expectedLoss.toFixed(2), "6.00");
 });
 
+test("roulette and big wheel helpers expose edge-aware advice", () => {
+  const roulette = Core.roulettePlan("american", "straight");
+  assert.equal(roulette.action, "Prefer European if available");
+  assert.equal(roulette.houseEdge.toFixed(2), "5.26");
+
+  const wheel = Core.bigWheelPlan("one");
+  assert.equal(wheel.action, "Best for longest play");
+  assert.ok(wheel.houseEdge < Core.bigWheelPlan("joker").houseEdge);
+});
+
 test("slot pot collection maps visible feature symbols to meter entries", () => {
   const potConfigs = {
     freeThrow: { label: "Free Throw Pot", collectors: ["bonus-free"] },

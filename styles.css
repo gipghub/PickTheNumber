@@ -4396,6 +4396,223 @@ input:focus {
   transform: scaleX(1.15);
 }
 
+.roulette-stage,
+.big-wheel-stage {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(260px, 1.4fr);
+  gap: 18px;
+  align-items: center;
+  min-height: 330px;
+  border: 10px solid #111820;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 24%, rgba(255, 255, 255, 0.1), transparent 34%),
+    linear-gradient(135deg, #0a6b51, #073323 70%);
+  padding: 22px;
+  box-shadow:
+    inset 0 0 0 3px rgba(212, 151, 43, 0.36),
+    0 18px 34px rgba(0, 0, 0, 0.34);
+}
+
+.roulette-wheel,
+.big-wheel {
+  position: relative;
+  aspect-ratio: 1;
+  width: min(100%, 260px);
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  border: 10px solid #2b1708;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, #f7d882 0 15%, #23130b 16% 23%, transparent 24%),
+    conic-gradient(
+      #af1616 0deg 10deg,
+      #171717 10deg 20deg,
+      #af1616 20deg 30deg,
+      #171717 30deg 40deg,
+      #07804f 40deg 50deg,
+      #171717 50deg 60deg,
+      #af1616 60deg 70deg,
+      #171717 70deg 80deg,
+      #af1616 80deg 90deg,
+      #171717 90deg 100deg,
+      #af1616 100deg 110deg,
+      #171717 110deg 120deg,
+      #af1616 120deg 130deg,
+      #171717 130deg 140deg,
+      #af1616 140deg 150deg,
+      #171717 150deg 160deg,
+      #af1616 160deg 170deg,
+      #171717 170deg 180deg,
+      #af1616 180deg 190deg,
+      #171717 190deg 200deg,
+      #af1616 200deg 210deg,
+      #171717 210deg 220deg,
+      #af1616 220deg 230deg,
+      #171717 230deg 240deg,
+      #af1616 240deg 250deg,
+      #171717 250deg 260deg,
+      #af1616 260deg 270deg,
+      #171717 270deg 280deg,
+      #af1616 280deg 290deg,
+      #171717 290deg 300deg,
+      #af1616 300deg 310deg,
+      #171717 310deg 320deg,
+      #af1616 320deg 330deg,
+      #171717 330deg 340deg,
+      #af1616 340deg 350deg,
+      #171717 350deg 360deg
+    );
+  box-shadow:
+    inset 0 0 0 6px rgba(247, 216, 130, 0.3),
+    0 0 28px rgba(0, 0, 0, 0.36);
+}
+
+.roulette-wheel.is-spinning,
+.big-wheel.is-spinning {
+  animation: casinoWheelSpin 900ms cubic-bezier(0.16, 0.76, 0.24, 1) both;
+}
+
+.roulette-wheel strong,
+.big-wheel strong {
+  position: relative;
+  z-index: 2;
+  min-width: 70px;
+  min-height: 70px;
+  display: grid;
+  place-items: center;
+  border: 4px solid #f7d882;
+  border-radius: 50%;
+  background: #101820;
+  color: #fff7d1;
+  font-size: clamp(1.15rem, 3vw, 1.8rem);
+  font-weight: 900;
+  text-align: center;
+}
+
+.roulette-ball {
+  position: absolute;
+  top: 7%;
+  left: 50%;
+  z-index: 3;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.86);
+}
+
+.roulette-wheel[data-result="red"] strong {
+  background: #ad1818;
+}
+
+.roulette-wheel[data-result="black"] strong {
+  background: #111;
+}
+
+.roulette-wheel[data-result="green"] strong {
+  background: #097047;
+}
+
+.roulette-layout {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.roulette-layout span {
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 4px;
+  background: #111;
+  color: #fff;
+  font-weight: 900;
+}
+
+.roulette-layout .red {
+  background: #a6191c;
+}
+
+.roulette-layout .zero {
+  grid-row: span 2;
+  background: #087047;
+}
+
+.roulette-layout .outside {
+  background: rgba(10, 52, 39, 0.96);
+  color: #f8d26b;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.big-wheel-stage {
+  background:
+    radial-gradient(circle at 50% 24%, rgba(255, 255, 255, 0.12), transparent 34%),
+    linear-gradient(135deg, #08345f, #101820 72%);
+}
+
+.big-wheel {
+  border-color: #392205;
+  background:
+    radial-gradient(circle at 50% 50%, #fff1a8 0 13%, #42290d 14% 21%, transparent 22%),
+    conic-gradient(#f3c54a 0 35deg, #1463c6 35deg 96deg, #e13a2d 96deg 148deg, #36a852 148deg 208deg, #6d42ca 208deg 268deg, #f78c2f 268deg 326deg, #101820 326deg 360deg);
+}
+
+.big-wheel > span {
+  position: absolute;
+  width: 58px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 999px;
+  background: rgba(7, 16, 24, 0.78);
+  color: #fff7d1;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.big-wheel > span:nth-child(1) { transform: translateY(-98px); }
+.big-wheel > span:nth-child(2) { transform: rotate(60deg) translateY(-98px) rotate(-60deg); }
+.big-wheel > span:nth-child(3) { transform: rotate(120deg) translateY(-98px) rotate(-120deg); }
+.big-wheel > span:nth-child(4) { transform: rotate(180deg) translateY(-98px) rotate(-180deg); }
+.big-wheel > span:nth-child(5) { transform: rotate(240deg) translateY(-98px) rotate(-240deg); }
+.big-wheel > span:nth-child(6) { transform: rotate(300deg) translateY(-98px) rotate(-300deg); }
+
+.big-wheel-paystrip {
+  display: grid;
+  gap: 10px;
+}
+
+.big-wheel-paystrip span {
+  min-height: 42px;
+  display: grid;
+  align-items: center;
+  border: 1px solid rgba(248, 210, 107, 0.42);
+  border-radius: 8px;
+  background: rgba(7, 16, 24, 0.64);
+  padding: 0 12px;
+  color: #fff7d1;
+  font-weight: 900;
+}
+
+@keyframes casinoWheelSpin {
+  0% {
+    transform: rotate(0turn) scale(1);
+  }
+
+  72% {
+    transform: rotate(1.82turn) scale(1.035);
+  }
+
+  100% {
+    transform: rotate(2turn) scale(1);
+  }
+}
+
 .slot-jackpots {
   position: absolute;
   left: 14px;
@@ -4836,6 +5053,12 @@ input:focus {
     grid-template-columns: minmax(170px, 1.7fr) repeat(5, minmax(48px, 0.58fr));
   }
 
+  .roulette-stage,
+  .big-wheel-stage {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
   .slot-reels {
     grid-template-columns: repeat(5, minmax(48px, 1fr));
   }
@@ -4854,6 +5077,25 @@ input:focus {
   .topbar-actions {
     flex-direction: column;
     align-items: flex-end;
+  }
+
+  .roulette-stage,
+  .big-wheel-stage {
+    padding: 14px;
+  }
+
+  .roulette-wheel,
+  .big-wheel {
+    width: min(100%, 220px);
+  }
+
+  .roulette-layout {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .roulette-layout span {
+    min-height: 32px;
+    font-size: 0.72rem;
   }
 
   .inline-fields,

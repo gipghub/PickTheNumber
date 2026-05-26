@@ -331,6 +331,19 @@ const elements = {
   slotBet: $("#slotBet"),
   slotRtp: $("#slotRtp"),
   slotVolatility: $("#slotVolatility"),
+  rouletteAdvice: $("#rouletteAdvice"),
+  rouletteWheel: $("#rouletteWheel"),
+  rouletteResult: $("#rouletteResult"),
+  rouletteWheelType: $("#rouletteWheelType"),
+  rouletteBetType: $("#rouletteBetType"),
+  rouletteUnit: $("#rouletteUnit"),
+  rouletteSpinButton: $("#rouletteSpinButton"),
+  bigWheelAdvice: $("#bigWheelAdvice"),
+  bigWheelGraphic: $("#bigWheelGraphic"),
+  bigWheelResult: $("#bigWheelResult"),
+  bigWheelSegment: $("#bigWheelSegment"),
+  bigWheelUnit: $("#bigWheelUnit"),
+  bigWheelSpinButton: $("#bigWheelSpinButton"),
   bankrollAdvice: $("#bankrollAdvice"),
   monthlyBudget: $("#monthlyBudget"),
   sessionsMonth: $("#sessionsMonth"),
@@ -403,6 +416,11 @@ async function playGameSound(game, cue = "tap") {
       playToneSequence(context, now + 0.06, [180, 235, 190], 0.045, "sawtooth", 0.016);
     },
     threeCard: () => playToneSequence(context, now, [310, 390, 475], 0.05, "triangle", 0.026),
+    roulette: () => playToneSequence(context, now, [294, 370, 440, 554], 0.04, "sine", 0.024),
+    bigWheel: () => {
+      scheduleNoise(context, now, 0.12, 0.018, 1800);
+      playToneSequence(context, now + 0.04, [220, 277, 330], 0.052, "triangle", 0.026);
+    },
     slots: () => {
       if (cue === "bonus") {
         playToneSequence(context, now, [523, 659, 784, 1046], 0.075, "triangle", 0.045);
@@ -2164,6 +2182,77 @@ function renderSlotSymbol(symbol, index) {
   `;
 }
 
+function setupRoulette() {
+  [elements.rouletteWheelType, elements.rouletteBetType, elements.rouletteUnit].forEach((input) =>
+    input.addEventListener("input", () => {
+      playGameSound("ui", "tap");
+      updateRouletteAdvice();
+    }),
+  );
+  elements.rouletteSpinButton.addEventListener("click", () => spinRouletteWheel());
+  updateRouletteAdvice();
+}
+
+function updateRouletteAdvice(resultText = "") {
+  const plan = Core.roulettePlan(elements.rouletteWheelType.value, elements.rouletteBetType.value);
+  const unit = Math.max(1, Number(elements.rouletteUnit.value) || 1);
+  elements.rouletteAdvice.innerHTML = `<strong>${plan.action}: ${plan.bet}.</strong><br>${resultText ? `${resultText}<br>` : ""}${plan.detail}<br>Hit rate: ${plan.hitRate.toFixed(1)}%. Payout: ${plan.payout}. House edge: ${plan.houseEdge.toFixed(2)}%. A $${unit.toFixed(0)} unit is plenty for this volatility.`;
+}
+
+function spinRouletteWheel() {
+  const isAmerican = elements.rouletteWheelType.value === "american";
+  const pockets = isAmerican
+    ? ["0", "00", ...Array.from({ length: 36 }, (_, index) => String(index + 1))]
+    : ["0", ...Array.from({ length: 36 }, (_, index) => String(index + 1))];
+  const result = randomItem(pockets);
+  const redNumbers = new Set(["1", "3", "5", "7", "9", "12", "14", "16", "18", "19", "21", "23", "25", "27", "30", "32", "34", "36"]);
+  const color = result === "0" || result === "00" ? "green" : redNumbers.has(result) ? "red" : "black";
+
+  elements.rouletteResult.textContent = result;
+  elements.rouletteWheel.dataset.result = color;
+  elements.rouletteWheel.classList.remove("is-spinning");
+  void elements.rouletteWheel.offsetWidth;
+  elements.rouletteWheel.classList.add("is-spinning");
+  playGameSound("roulette", "spin");
+  updateRouletteAdvice(`Last spin: ${result} ${color}.`);
+}
+
+function setupBigWheel() {
+  [elements.bigWheelSegment, elements.bigWheelUnit].forEach((input) =>
+    input.addEventListener("input", () => {
+      playGameSound("ui", "tap");
+      updateBigWheelAdvice();
+    }),
+  );
+  elements.bigWheelSpinButton.addEventListener("click", () => spinBigWheel());
+  updateBigWheelAdvice();
+}
+
+function updateBigWheelAdvice(resultText = "") {
+  const plan = Core.bigWheelPlan(elements.bigWheelSegment.value);
+  const unit = Math.max(1, Number(elements.bigWheelUnit.value) || 1);
+  elements.bigWheelAdvice.innerHTML = `<strong>${plan.action}: ${plan.label}.</strong><br>${resultText ? `${resultText}<br>` : ""}${plan.detail}<br>Hit rate: ${plan.hitRate.toFixed(1)}%. Payout: ${plan.payout}. Estimated house edge: ${plan.houseEdge.toFixed(1)}%. Keep this near one $${unit.toFixed(0)} novelty spin.`;
+}
+
+function spinBigWheel() {
+  const segments = [
+    ...Array(24).fill("$1"),
+    ...Array(15).fill("$2"),
+    ...Array(7).fill("$5"),
+    ...Array(4).fill("$10"),
+    ...Array(2).fill("$20"),
+    "Joker",
+    "Logo",
+  ];
+  const result = randomItem(segments);
+  elements.bigWheelResult.textContent = result;
+  elements.bigWheelGraphic.classList.remove("is-spinning");
+  void elements.bigWheelGraphic.offsetWidth;
+  elements.bigWheelGraphic.classList.add("is-spinning");
+  playGameSound("bigWheel", "spin");
+  updateBigWheelAdvice(`Last spin: ${result}.`);
+}
+
 function setupBankroll() {
   [elements.monthlyBudget, elements.sessionsMonth, elements.lotterySpend].forEach((input) =>
     input.addEventListener("input", () => {
@@ -2216,6 +2305,8 @@ async function init() {
   setupCardPickers();
   setupCraps();
   setupSlots();
+  setupRoulette();
+  setupBigWheel();
   setupBankroll();
   setupPwa();
   applyInitialRoute();
