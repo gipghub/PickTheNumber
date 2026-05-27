@@ -902,16 +902,20 @@
                       <span class="roulette-ball"></span>
                       <strong id="rouletteResult">0</strong>
                     </div>
-                    <div class="roulette-layout" aria-hidden="true">
-                      <span class="zero">0</span>
-                      <span class="red">1</span><span>2</span><span class="red">3</span>
-                      <span>4</span><span class="red">5</span><span>6</span>
-                      <span class="red">7</span><span>8</span><span class="red">9</span>
-                      <span>10</span><span>11</span><span class="red">12</span>
-                      <span>13</span><span class="red">14</span><span>15</span>
-                      <span class="red">16</span><span>17</span><span class="red">18</span>
-                      <span class="outside">1st 12</span><span class="outside">2nd 12</span><span class="outside">3rd 12</span>
-                      <span class="outside">Red</span><span class="outside">Black</span><span class="outside">Even</span>
+                    <div class="roulette-layout" id="rouletteLayout" aria-label="Roulette betting layout">
+                      <button class="zero" type="button">0</button>
+                      <button class="red" type="button">1</button><button type="button">2</button><button class="red" type="button">3</button>
+                      <button type="button">4</button><button class="red" type="button">5</button><button type="button">6</button>
+                      <button class="red" type="button">7</button><button type="button">8</button><button class="red" type="button">9</button>
+                      <button type="button">10</button><button type="button">11</button><button class="red" type="button">12</button>
+                      <button type="button">13</button><button class="red" type="button">14</button><button type="button">15</button>
+                      <button class="red" type="button">16</button><button data-bet="straight17" type="button">17</button><button class="red" type="button">18</button>
+                      <button class="outside" data-bet="dozen1" type="button">1st 12</button><button class="outside" data-bet="dozen2" type="button">2nd 12</button><button class="outside" data-bet="dozen3" type="button">3rd 12</button>
+                      <button class="outside" data-bet="low" type="button">1-18</button><button class="outside" data-bet="high" type="button">19-36</button><button class="outside" data-bet="odd" type="button">Odd</button>
+                      <button class="outside red" data-bet="red" type="button">Red</button><button class="outside" data-bet="black" type="button">Black</button><button class="outside" data-bet="even" type="button">Even</button>
+                      <button class="outside" data-bet="column1" type="button">Col 1</button><button class="outside" data-bet="column2" type="button">Col 2</button><button class="outside" data-bet="column3" type="button">Col 3</button>
+                      <button class="outside compact" data-bet="sixLine1" type="button">1-6</button><button class="outside compact" data-bet="corner1" type="button">1/2/4/5</button><button class="outside compact" data-bet="street1" type="button">1-2-3</button>
+                      <button class="outside compact" data-bet="split1" type="button">1/2</button>
                     </div>
                   </div>
                 </div>
@@ -969,6 +973,7 @@
                   <button class="secondary-action" id="rouletteClearBetButton" type="button">Clear Bet</button>
                 </div>
                 <div class="casino-bet-ledger" id="rouletteBetLedger">No roulette bet placed</div>
+                <div class="casino-result-field" id="rouletteWinLossField">Win/Loss: $0.00</div>
                 <div class="advice-box" id="rouletteAdvice"></div>
               </div>
             </section>
@@ -981,6 +986,7 @@
                 </div>
                 <div class="casino-visual big-wheel-visual" aria-label="Big Wheel preview">
                   <div class="big-wheel-stage">
+                    <div class="big-wheel-pointer" aria-hidden="true"></div>
                     <div class="big-wheel" id="bigWheelGraphic" aria-hidden="true">
                       <span>$1</span>
                       <span>$2</span>
@@ -1022,6 +1028,7 @@
                   <button class="secondary-action" id="bigWheelClearBetButton" type="button">Clear Bet</button>
                 </div>
                 <div class="casino-bet-ledger" id="bigWheelBetLedger">No Big Wheel bet placed</div>
+                <div class="casino-result-field" id="bigWheelWinLossField">Win/Loss: $0.00</div>
                 <div class="advice-box" id="bigWheelAdvice"></div>
               </div>
             </section>
@@ -1086,6 +1093,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js?v=54" defer></script>
+    <script src="app.js?v=55" defer></script>
   </body>
 </html>

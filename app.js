@@ -367,6 +367,7 @@ const elements = {
   rouletteAdvice: $("#rouletteAdvice"),
   rouletteWheel: $("#rouletteWheel"),
   rouletteResult: $("#rouletteResult"),
+  rouletteLayout: $("#rouletteLayout"),
   rouletteWheelType: $("#rouletteWheelType"),
   rouletteBetType: $("#rouletteBetType"),
   rouletteBetTarget: $("#rouletteBetTarget"),
@@ -375,6 +376,7 @@ const elements = {
   rouletteSpinButton: $("#rouletteSpinButton"),
   rouletteClearBetButton: $("#rouletteClearBetButton"),
   rouletteBetLedger: $("#rouletteBetLedger"),
+  rouletteWinLossField: $("#rouletteWinLossField"),
   bigWheelAdvice: $("#bigWheelAdvice"),
   bigWheelGraphic: $("#bigWheelGraphic"),
   bigWheelResult: $("#bigWheelResult"),
@@ -384,6 +386,7 @@ const elements = {
   bigWheelSpinButton: $("#bigWheelSpinButton"),
   bigWheelClearBetButton: $("#bigWheelClearBetButton"),
   bigWheelBetLedger: $("#bigWheelBetLedger"),
+  bigWheelWinLossField: $("#bigWheelWinLossField"),
   bankrollAdvice: $("#bankrollAdvice"),
   monthlyBudget: $("#monthlyBudget"),
   sessionsMonth: $("#sessionsMonth"),
@@ -2233,15 +2236,25 @@ function setupRoulette() {
       playGameSound("ui", "tap");
       if (input === elements.rouletteBetType) syncRouletteBetTargetFromType();
       if (input === elements.rouletteBetTarget) syncRouletteBetType();
+      renderRouletteChips();
       updateRouletteAdvice();
       updateRouletteBetLedger();
     }),
   );
+  elements.rouletteLayout.addEventListener("click", (event) => {
+    const target = event.target.closest("[data-bet]");
+    if (!target) return;
+    elements.rouletteBetTarget.value = target.dataset.bet;
+    syncRouletteBetType();
+    placeRouletteBet();
+  });
   elements.roulettePlaceBetButton.addEventListener("click", () => placeRouletteBet());
   elements.rouletteSpinButton.addEventListener("click", () => spinRouletteWheel());
   elements.rouletteClearBetButton.addEventListener("click", () => clearRouletteBet());
   syncRouletteBetType();
+  renderRouletteChips();
   updateRouletteBetLedger();
+  updateRouletteWinLossField();
   updateRouletteAdvice();
 }
 
@@ -2273,14 +2286,18 @@ function placeRouletteBet() {
   const unit = Math.max(1, Number(elements.rouletteUnit.value) || 1);
   state.rouletteBet = roundMoney(state.rouletteBet + unit);
   playGameSound("blackjack", "chip");
+  renderRouletteChips();
   updateRouletteBetLedger();
+  updateRouletteWinLossField("Bet placed");
   updateRouletteAdvice("Chip placed.");
 }
 
 function clearRouletteBet() {
   state.rouletteBet = 0;
   playGameSound("ui", "tap");
+  renderRouletteChips();
   updateRouletteBetLedger();
+  updateRouletteWinLossField("No active bet");
   updateRouletteAdvice("Roulette bet cleared.");
 }
 
@@ -2290,6 +2307,21 @@ function updateRouletteBetLedger() {
     ? `Bet ${formatMoney(state.rouletteBet)} on ${bet.label} · Net ${formatSignedMoney(state.rouletteNet)}`
     : `No roulette bet placed · Net ${formatSignedMoney(state.rouletteNet)}`;
   elements.rouletteBetLedger.classList.toggle("has-bet", state.rouletteBet > 0);
+}
+
+function updateRouletteWinLossField(label = "Win/Loss") {
+  elements.rouletteWinLossField.textContent = `${label}: ${formatSignedMoney(state.rouletteNet)}`;
+  elements.rouletteWinLossField.classList.toggle("is-positive", state.rouletteNet > 0);
+  elements.rouletteWinLossField.classList.toggle("is-negative", state.rouletteNet < 0);
+}
+
+function renderRouletteChips() {
+  const selectedKey = elements.rouletteBetTarget.value;
+  elements.rouletteLayout.querySelectorAll("[data-bet]").forEach((target) => {
+    const hasChip = state.rouletteBet > 0 && target.dataset.bet === selectedKey;
+    target.classList.toggle("has-chip", hasChip);
+    target.dataset.chip = hasChip ? formatMoney(state.rouletteBet) : "";
+  });
 }
 
 function spinRouletteWheel() {
@@ -2309,6 +2341,7 @@ function spinRouletteWheel() {
   playGameSound("roulette", "spin");
   const resolution = resolveRouletteBet(result, color);
   updateRouletteBetLedger();
+  updateRouletteWinLossField(rouletteResultLabel(resolution));
   updateRouletteAdvice(`Last spin: ${result} ${color}.${resolution ? ` ${resolution}` : ""}`);
 }
 
@@ -2319,6 +2352,11 @@ function resolveRouletteBet(result, color) {
   const net = won ? state.rouletteBet * bet.payout : -state.rouletteBet;
   state.rouletteNet = roundMoney(state.rouletteNet + net);
   return won ? `${bet.label} wins ${formatMoney(net)}.` : `${bet.label} loses ${formatMoney(state.rouletteBet)}.`;
+}
+
+function rouletteResultLabel(resolution) {
+  if (!resolution || resolution.includes("No active")) return "Win/Loss";
+  return resolution.includes("wins") ? "Won" : "Lost";
 }
 
 function rouletteBetWins(bet, result, color) {
@@ -2356,6 +2394,7 @@ function setupBigWheel() {
   elements.bigWheelSpinButton.addEventListener("click", () => spinBigWheel());
   elements.bigWheelClearBetButton.addEventListener("click", () => clearBigWheelBet());
   updateBigWheelBetLedger();
+  updateBigWheelWinLossField();
   updateBigWheelAdvice();
 }
 
@@ -2378,6 +2417,7 @@ function placeBigWheelBet() {
   state.bigWheelBet = roundMoney(state.bigWheelBet + unit);
   playGameSound("blackjack", "chip");
   updateBigWheelBetLedger();
+  updateBigWheelWinLossField("Bet placed");
   updateBigWheelAdvice("Chip placed.");
 }
 
@@ -2385,6 +2425,7 @@ function clearBigWheelBet() {
   state.bigWheelBet = 0;
   playGameSound("ui", "tap");
   updateBigWheelBetLedger();
+  updateBigWheelWinLossField("No active bet");
   updateBigWheelAdvice("Big Wheel bet cleared.");
 }
 
@@ -2394,6 +2435,12 @@ function updateBigWheelBetLedger() {
     ? `Bet ${formatMoney(state.bigWheelBet)} on ${segment.label} · Net ${formatSignedMoney(state.bigWheelNet)}`
     : `No Big Wheel bet placed · Net ${formatSignedMoney(state.bigWheelNet)}`;
   elements.bigWheelBetLedger.classList.toggle("has-bet", state.bigWheelBet > 0);
+}
+
+function updateBigWheelWinLossField(label = "Win/Loss") {
+  elements.bigWheelWinLossField.textContent = `${label}: ${formatSignedMoney(state.bigWheelNet)}`;
+  elements.bigWheelWinLossField.classList.toggle("is-positive", state.bigWheelNet > 0);
+  elements.bigWheelWinLossField.classList.toggle("is-negative", state.bigWheelNet < 0);
 }
 
 function spinBigWheel() {
@@ -2414,6 +2461,7 @@ function spinBigWheel() {
   playGameSound("bigWheel", "spin");
   const resolution = resolveBigWheelBet(result);
   updateBigWheelBetLedger();
+  updateBigWheelWinLossField(bigWheelResultLabel(resolution));
   updateBigWheelAdvice(`Last spin: ${result}.${resolution ? ` ${resolution}` : ""}`);
 }
 
@@ -2424,6 +2472,11 @@ function resolveBigWheelBet(result) {
   const net = won ? state.bigWheelBet * segment.payout : -state.bigWheelBet;
   state.bigWheelNet = roundMoney(state.bigWheelNet + net);
   return won ? `${segment.label} wins ${formatMoney(net)}.` : `${segment.label} loses ${formatMoney(state.bigWheelBet)}.`;
+}
+
+function bigWheelResultLabel(resolution) {
+  if (!resolution || resolution.includes("No active")) return "Win/Loss";
+  return resolution.includes("wins") ? "Won" : "Lost";
 }
 
 function setupBankroll() {
