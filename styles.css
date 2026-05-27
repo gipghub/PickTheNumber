@@ -1240,6 +1240,8 @@
   font-size: 0.58rem;
   font-weight: 900;
   opacity: calc(1 - (var(--line-index) * 0.012));
+  animation: slotLineChipBlink 1.8s ease-in-out infinite;
+  animation-delay: calc(var(--line-index) * 55ms);
 }
 
 .slot-line-labels span.diagonal,
@@ -1267,6 +1269,8 @@
   stroke-linejoin: round;
   filter: drop-shadow(0 0 2px rgba(248, 201, 87, 0.82));
   opacity: calc(0.9 - (var(--line-index) * 0.018));
+  animation: slotPaylineBlink 1.8s ease-in-out infinite;
+  animation-delay: calc(var(--line-index) * 55ms);
 }
 
 .slot-paylines polyline.diagonal,
@@ -1277,6 +1281,41 @@
 
 .slot-paylines polyline.zigzag {
   stroke-dasharray: 3 1.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot-line-labels span,
+  .slot-paylines polyline {
+    animation: none;
+  }
+}
+
+@keyframes slotPaylineBlink {
+  0%,
+  100% {
+    opacity: calc(0.48 - (var(--line-index) * 0.006));
+    stroke-width: 0.95;
+  }
+
+  45%,
+  58% {
+    opacity: calc(0.98 - (var(--line-index) * 0.01));
+    stroke-width: 1.65;
+  }
+}
+
+@keyframes slotLineChipBlink {
+  0%,
+  100% {
+    opacity: 0.62;
+    box-shadow: none;
+  }
+
+  45%,
+  58% {
+    opacity: 1;
+    box-shadow: 0 0 12px rgba(114, 226, 255, 0.5);
+  }
 }
 
 .slot-machine.basketball-slot-machine .slot-dashboard {
