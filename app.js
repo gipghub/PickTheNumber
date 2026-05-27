@@ -12,6 +12,29 @@ const SLOT_SESSION_STORAGE_KEY = "pick-the-number-slot-session";
 const SLOT_SPIN_DURATION_MS = 1300;
 const SLOT_SETTLE_DURATION_MS = 650;
 const SLOT_BASE_RTP = 98;
+const SLOT_MAX_LINES = 20;
+const SLOT_PAYLINES = [
+  { label: "1", name: "Center row", rows: [2, 2, 2, 2, 2], kind: "row" },
+  { label: "2", name: "Top row", rows: [0, 0, 0, 0, 0], kind: "row" },
+  { label: "3", name: "Bottom row", rows: [4, 4, 4, 4, 4], kind: "row" },
+  { label: "4", name: "Upper row", rows: [1, 1, 1, 1, 1], kind: "row" },
+  { label: "5", name: "Lower row", rows: [3, 3, 3, 3, 3], kind: "row" },
+  { label: "6", name: "V cut", rows: [0, 1, 2, 1, 0], kind: "zigzag" },
+  { label: "7", name: "Inverted V", rows: [4, 3, 2, 3, 4], kind: "zigzag" },
+  { label: "8", name: "Top diagonal", rows: [0, 1, 2, 3, 4], kind: "diagonal" },
+  { label: "9", name: "Bottom diagonal", rows: [4, 3, 2, 1, 0], kind: "diagonal" },
+  { label: "10", name: "Lightning high", rows: [1, 0, 1, 0, 1], kind: "zigzag" },
+  { label: "11", name: "Lightning low", rows: [3, 4, 3, 4, 3], kind: "zigzag" },
+  { label: "12", name: "Zig center high", rows: [2, 1, 0, 1, 2], kind: "zigzag" },
+  { label: "13", name: "Zag center low", rows: [2, 3, 4, 3, 2], kind: "zigzag" },
+  { label: "14", name: "Court bounce A", rows: [0, 2, 4, 2, 0], kind: "zigzag" },
+  { label: "15", name: "Court bounce B", rows: [4, 2, 0, 2, 4], kind: "zigzag" },
+  { label: "16", name: "Fast break A", rows: [1, 2, 3, 2, 1], kind: "zigzag" },
+  { label: "17", name: "Fast break B", rows: [3, 2, 1, 2, 3], kind: "zigzag" },
+  { label: "18", name: "Stair step high", rows: [0, 0, 1, 2, 2], kind: "zigzag" },
+  { label: "19", name: "Stair step low", rows: [4, 4, 3, 2, 2], kind: "zigzag" },
+  { label: "20", name: "Full court zig", rows: [2, 4, 0, 4, 2], kind: "zigzag" },
+];
 const SLOT_PAY_OUTCOMES = [
   { label: "No line win", multiplier: 0, chance: 0.61 },
   { label: "Single line hit", multiplier: 1, chance: 0.225 },
@@ -338,6 +361,13 @@ const elements = {
   threeCardDealButton: $("#threeCardDealButton"),
   slotsAdvice: $("#slotsAdvice"),
   slotReels: $("#slotReels"),
+  slotPaylines: $("#slotPaylines"),
+  slotLineLabelsLeft: $("#slotLineLabelsLeft"),
+  slotLineLabelsRight: $("#slotLineLabelsRight"),
+  slotLineSummary: $("#slotLineSummary"),
+  slotLines: $("#slotLines"),
+  slotLinesValue: $("#slotLinesValue"),
+  slotMaxLinesButton: $("#slotMaxLinesButton"),
   slotSpinButton: $("#slotSpinButton"),
   slotRulesOpen: $("#slotRulesOpen"),
   slotRulesClose: $("#slotRulesClose"),
@@ -1379,7 +1409,7 @@ function dealThreeCardHand() {
 function setupSlots() {
   loadSlotPots();
   loadSlotSession();
-  [elements.slotBankroll, elements.slotBet, elements.slotRtp, elements.slotVolatility].forEach((input) =>
+  [elements.slotBankroll, elements.slotBet, elements.slotLines, elements.slotRtp, elements.slotVolatility].forEach((input) =>
     input.addEventListener("input", () => {
       playGameSound("ui", "tap");
       state.slotVisibleSymbols = [];
@@ -1387,6 +1417,12 @@ function setupSlots() {
       updateSlotsAdvice();
     }),
   );
+  elements.slotMaxLinesButton.addEventListener("click", () => {
+    elements.slotLines.value = String(SLOT_MAX_LINES);
+    state.slotVisibleSymbols = [];
+    playGameSound("ui", "tap");
+    updateSlotsAdvice();
+  });
   elements.slotSpinButton.addEventListener("click", () => startSlotSpin());
   elements.slotReels.addEventListener("animationend", handleSlotAnimationEnd);
   elements.slotBonusScreen.addEventListener("click", (event) => {
@@ -1520,11 +1556,19 @@ function currentSlotBankroll() {
 }
 
 function currentSlotPlan() {
-  return Core.slotsPlan(elements.slotBankroll.value, elements.slotBet.value, elements.slotRtp.value, elements.slotVolatility.value);
+  return Core.slotsPlan(elements.slotBankroll.value, currentSlotBet(), elements.slotRtp.value, elements.slotVolatility.value);
 }
 
 function currentSlotBet() {
+  return roundMoney(currentSlotLineBet() * currentSlotLineCount());
+}
+
+function currentSlotLineBet() {
   return Math.max(0.25, Number(elements.slotBet.value) || 1);
+}
+
+function currentSlotLineCount() {
+  return Math.max(1, Math.min(SLOT_MAX_LINES, Math.floor(Number(elements.slotLines.value) || SLOT_MAX_LINES)));
 }
 
 function formatMoney(value) {
@@ -1797,7 +1841,8 @@ function rollSlotBonus(pot) {
 
 function updateSlotsAdvice(playResultSound = false) {
   const plan = currentSlotPlan();
-  elements.slotsAdvice.innerHTML = `<strong>${plan.spins} spins before the bankroll is gone.</strong><br>At ${Number(elements.slotRtp.value).toFixed(1)}% RTP, the long-run expected loss over that many spins is about $${plan.expectedLoss.toFixed(2)}. For ${elements.slotVolatility.value} volatility, consider a stop-loss near $${plan.stopLoss.toFixed(0)} and a win goal near $${plan.winGoal.toFixed(0)}.`;
+  const lineCount = currentSlotLineCount();
+  elements.slotsAdvice.innerHTML = `<strong>${plan.spins} spins before the bankroll is gone.</strong><br>${lineCount} active ${lineCount === 1 ? "line" : "lines"} at ${formatMoney(currentSlotLineBet())} per line makes each spin ${formatMoney(currentSlotBet())}. At ${Number(elements.slotRtp.value).toFixed(1)}% RTP, the long-run expected loss over that many spins is about ${formatMoney(plan.expectedLoss)}. For ${elements.slotVolatility.value} volatility, consider a stop-loss near ${formatMoney(plan.stopLoss)} and a win goal near ${formatMoney(plan.winGoal)}.`;
   renderSlotVisual(plan, playResultSound);
 }
 
@@ -1835,17 +1880,41 @@ function renderVideoPokerCard(card, isHeld, index) {
 function renderSlotVisual(plan, playResultSound = false) {
   syncSlotProgressives(plan);
   const reelSymbols = state.slotVisibleSymbols.length ? state.slotVisibleSymbols : buildSlotReelSymbols();
+  const lineCount = currentSlotLineCount();
+  const lineBet = currentSlotLineBet();
+  const totalBet = currentSlotBet();
   state.slotVisibleSymbols = reelSymbols;
 
   elements.slotReels.innerHTML = reelSymbols.map((label, index) => renderSlotSymbol(label, index)).join("");
+  renderSlotPaylines();
+  elements.slotLinesValue.textContent = String(lineCount);
+  elements.slotLineSummary.textContent = `${lineCount} ${lineCount === 1 ? "Line" : "Lines"} · Progressive Hoops`;
   elements.slotSpinMeter.textContent = `${plan.spins} spins`;
   elements.slotCreditsMeter.textContent = `Credits ${formatMoney(state.slotCredits)}`;
   elements.slotWinMeter.textContent = `Win ${formatMoney(state.slotLastWin)}`;
   elements.slotLossMeter.textContent = `$${plan.expectedLoss.toFixed(2)} expected loss`;
   elements.slotStopMeter.textContent = `$${plan.stopLoss.toFixed(0)} stop`;
-  elements.slotBetBadge.textContent = `$${Number(elements.slotBet.value || 0).toFixed(2)}`;
+  elements.slotBetBadge.textContent = `${formatMoney(lineBet)} x ${lineCount} = ${formatMoney(totalBet)}`;
   updateSlotBonusMeters(playResultSound);
   renderSlotProgressives(playResultSound);
+}
+
+function activeSlotPaylines() {
+  return SLOT_PAYLINES.slice(0, currentSlotLineCount());
+}
+
+function renderSlotPaylines() {
+  const lines = activeSlotPaylines();
+  elements.slotPaylines.innerHTML = lines
+    .map((line, index) => {
+      const points = line.rows.map((row, reelIndex) => `${10 + reelIndex * 20},${10 + row * 20}`).join(" ");
+      return `<polyline points="${points}" class="${line.kind}" style="--line-index:${index};" />`;
+    })
+    .join("");
+
+  const labels = lines.map((line, index) => `<span class="${line.kind}" style="--line-index:${index};">${line.label}</span>`).join("");
+  elements.slotLineLabelsLeft.innerHTML = labels;
+  elements.slotLineLabelsRight.innerHTML = labels;
 }
 
 function renderSlotProgressives(playResultSound = false) {
@@ -1890,6 +1959,7 @@ function buildSlotReelSymbols() {
   const seed =
     Number(elements.slotBankroll.value) * 3 +
     Number(elements.slotBet.value) * 19 +
+    currentSlotLineCount() * 23 +
     Number(elements.slotRtp.value) * 11 +
     volatility.length +
     state.slotSpinSeed;
