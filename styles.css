@@ -4703,6 +4703,10 @@ input:focus {
     conic-gradient(#f3c54a 0 35deg, #1463c6 35deg 96deg, #e13a2d 96deg 148deg, #36a852 148deg 208deg, #6d42ca 208deg 268deg, #f78c2f 268deg 326deg, #101820 326deg 360deg);
 }
 
+.big-wheel.is-spinning {
+  animation: bigWheelResultSpin 1.15s cubic-bezier(0.12, 0.82, 0.22, 1) both;
+}
+
 .big-wheel > span {
   position: absolute;
   width: 58px;
@@ -4717,12 +4721,17 @@ input:focus {
   font-weight: 900;
 }
 
-.big-wheel > span:nth-child(1) { transform: translateY(-98px); }
-.big-wheel > span:nth-child(2) { transform: rotate(60deg) translateY(-98px) rotate(-60deg); }
-.big-wheel > span:nth-child(3) { transform: rotate(120deg) translateY(-98px) rotate(-120deg); }
-.big-wheel > span:nth-child(4) { transform: rotate(180deg) translateY(-98px) rotate(-180deg); }
-.big-wheel > span:nth-child(5) { transform: rotate(240deg) translateY(-98px) rotate(-240deg); }
-.big-wheel > span:nth-child(6) { transform: rotate(300deg) translateY(-98px) rotate(-300deg); }
+.big-wheel > span:nth-child(1) { transform: rotate(17.5deg) translateY(-98px) rotate(-17.5deg); }
+.big-wheel > span:nth-child(2) { transform: rotate(65.5deg) translateY(-98px) rotate(-65.5deg); }
+.big-wheel > span:nth-child(3) { transform: rotate(122deg) translateY(-98px) rotate(-122deg); }
+.big-wheel > span:nth-child(4) { transform: rotate(178deg) translateY(-98px) rotate(-178deg); }
+.big-wheel > span:nth-child(5) { transform: rotate(238deg) translateY(-98px) rotate(-238deg); }
+.big-wheel > span:nth-child(6) { transform: rotate(297deg) translateY(-98px) rotate(-297deg); }
+.big-wheel > span:nth-child(7) { transform: rotate(343deg) translateY(-98px) rotate(-343deg); }
+
+.big-wheel strong {
+  transform: rotate(var(--big-wheel-readout-angle, 0deg));
+}
 
 .big-wheel-paystrip {
   display: grid;
@@ -4803,6 +4812,20 @@ input:focus {
 
   100% {
     transform: rotate(2turn) scale(1);
+  }
+}
+
+@keyframes bigWheelResultSpin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  72% {
+    transform: rotate(calc(var(--big-wheel-stop-angle, 1440deg) - 64deg)) scale(1.035);
+  }
+
+  100% {
+    transform: rotate(var(--big-wheel-stop-angle, 1440deg)) scale(1);
   }
 }
 

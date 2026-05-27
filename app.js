@@ -72,13 +72,13 @@ const ROULETTE_BETS = {
   straight17: { label: "17", type: "straight", payout: 35 },
 };
 const BIG_WHEEL_SEGMENTS = {
-  one: { label: "$1", payout: 1 },
-  two: { label: "$2", payout: 2 },
-  five: { label: "$5", payout: 5 },
-  ten: { label: "$10", payout: 10 },
-  twenty: { label: "$20", payout: 20 },
-  joker: { label: "Joker", payout: 40 },
-  logo: { label: "Logo", payout: 40 },
+  one: { label: "$1", payout: 1, stopAngle: 17.5 },
+  two: { label: "$2", payout: 2, stopAngle: 65.5 },
+  five: { label: "$5", payout: 5, stopAngle: 122 },
+  ten: { label: "$10", payout: 10, stopAngle: 178 },
+  twenty: { label: "$20", payout: 20, stopAngle: 238 },
+  joker: { label: "Joker", payout: 40, stopAngle: 297 },
+  logo: { label: "Logo", payout: 40, stopAngle: 343 },
 };
 const SLOT_BONUS_PLAYS = {
   freeThrows: {
@@ -2515,16 +2515,22 @@ function updateBigWheelWinLossField(label = "Win/Loss") {
 
 function spinBigWheel() {
   const segments = [
-    ...Array(24).fill("$1"),
-    ...Array(15).fill("$2"),
-    ...Array(7).fill("$5"),
-    ...Array(4).fill("$10"),
-    ...Array(2).fill("$20"),
-    "Joker",
-    "Logo",
+    ...Array(24).fill("one"),
+    ...Array(15).fill("two"),
+    ...Array(7).fill("five"),
+    ...Array(4).fill("ten"),
+    ...Array(2).fill("twenty"),
+    "joker",
+    "logo",
   ];
-  const result = randomItem(segments);
+  const resultKey = randomItem(segments);
+  const resultSegment = BIG_WHEEL_SEGMENTS[resultKey] || BIG_WHEEL_SEGMENTS.one;
+  const result = resultSegment.label;
+  const stopRotation = 1440 - resultSegment.stopAngle;
   elements.bigWheelResult.textContent = result;
+  elements.bigWheelGraphic.dataset.result = resultKey;
+  elements.bigWheelGraphic.style.setProperty("--big-wheel-stop-angle", `${stopRotation}deg`);
+  elements.bigWheelGraphic.style.setProperty("--big-wheel-readout-angle", `${-stopRotation}deg`);
   elements.bigWheelGraphic.classList.remove("is-spinning");
   void elements.bigWheelGraphic.offsetWidth;
   elements.bigWheelGraphic.classList.add("is-spinning");
