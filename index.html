@@ -937,13 +937,38 @@
                     </select>
                   </div>
                   <div class="field-stack">
+                    <label for="rouletteBetTarget">Bet target</label>
+                    <select id="rouletteBetTarget">
+                      <option value="red">Red</option>
+                      <option value="black">Black</option>
+                      <option value="odd">Odd</option>
+                      <option value="even">Even</option>
+                      <option value="low">1 to 18</option>
+                      <option value="high">19 to 36</option>
+                      <option value="dozen1">1st 12</option>
+                      <option value="dozen2">2nd 12</option>
+                      <option value="dozen3">3rd 12</option>
+                      <option value="column1">Column 1</option>
+                      <option value="column2">Column 2</option>
+                      <option value="column3">Column 3</option>
+                      <option value="sixLine1">1-6</option>
+                      <option value="corner1">1/2/4/5</option>
+                      <option value="street1">1-2-3</option>
+                      <option value="split1">1/2</option>
+                      <option value="straight17">17</option>
+                    </select>
+                  </div>
+                  <div class="field-stack">
                     <label for="rouletteUnit">Unit</label>
                     <input id="rouletteUnit" type="number" min="1" value="5" />
                   </div>
                 </div>
                 <div class="button-row strategy-action-row">
+                  <button class="secondary-action" id="roulettePlaceBetButton" type="button">Place Bet</button>
                   <button class="secondary-action" id="rouletteSpinButton" type="button">Spin Wheel</button>
+                  <button class="secondary-action" id="rouletteClearBetButton" type="button">Clear Bet</button>
                 </div>
+                <div class="casino-bet-ledger" id="rouletteBetLedger">No roulette bet placed</div>
                 <div class="advice-box" id="rouletteAdvice"></div>
               </div>
             </section>
@@ -992,8 +1017,11 @@
                   </div>
                 </div>
                 <div class="button-row strategy-action-row">
+                  <button class="secondary-action" id="bigWheelPlaceBetButton" type="button">Place Bet</button>
                   <button class="secondary-action" id="bigWheelSpinButton" type="button">Spin Big Wheel</button>
+                  <button class="secondary-action" id="bigWheelClearBetButton" type="button">Clear Bet</button>
                 </div>
+                <div class="casino-bet-ledger" id="bigWheelBetLedger">No Big Wheel bet placed</div>
                 <div class="advice-box" id="bigWheelAdvice"></div>
               </div>
             </section>
@@ -1058,6 +1086,6 @@
     </template>
 
     <script src="src/core.js" defer></script>
-    <script src="app.js?v=53" defer></script>
+    <script src="app.js?v=54" defer></script>
   </body>
 </html>
