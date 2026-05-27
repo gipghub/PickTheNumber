@@ -1039,7 +1039,7 @@
 
 .slot-machine.basketball-slot-machine .slot-control-stack {
   position: absolute;
-  right: 28px;
+  right: 14px;
   top: 318px;
   z-index: 7;
   display: grid;
@@ -1078,15 +1078,15 @@
 }
 
 .slot-line-control {
-  width: 136px;
+  width: 96px;
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 7px;
+  gap: 5px;
   align-items: center;
   border: 2px solid rgba(114, 226, 255, 0.5);
   border-radius: 10px;
   background: rgba(3, 10, 28, 0.88);
-  padding: 9px;
+  padding: 6px;
   color: #dff7ff;
   box-shadow:
     inset 0 0 18px rgba(31, 111, 235, 0.24),
@@ -1095,13 +1095,13 @@
 
 .slot-line-control label,
 .slot-line-control output {
-  font-size: 0.72rem;
+  font-size: 0.62rem;
   font-weight: 1000;
   text-transform: uppercase;
 }
 
 .slot-line-control output {
-  min-width: 30px;
+  min-width: 26px;
   display: grid;
   place-items: center;
   border-radius: 6px;
@@ -1117,12 +1117,12 @@
 
 .slot-line-control button {
   grid-column: 1 / -1;
-  min-height: 28px;
+  min-height: 24px;
   border: 1px solid rgba(248, 201, 87, 0.72);
   border-radius: 7px;
   background: linear-gradient(180deg, #f8c957, #bc7213);
   color: #07111f;
-  font-size: 0.68rem;
+  font-size: 0.56rem;
   font-weight: 1000;
   text-transform: uppercase;
   cursor: pointer;
@@ -1932,9 +1932,9 @@ body.slot-profile-opened {
   }
 
   .slot-line-control {
-    width: 78px;
-    gap: 4px;
-    padding: 5px;
+    width: 56px;
+    gap: 3px;
+    padding: 4px;
     border-width: 1px;
   }
 
@@ -1945,11 +1945,11 @@ body.slot-profile-opened {
   }
 
   .slot-line-control output {
-    min-width: 22px;
+    min-width: 18px;
   }
 
   .slot-line-control button {
-    min-height: 20px;
+    min-height: 18px;
   }
 
   .slot-machine.basketball-slot-machine .slot-spin-control {
