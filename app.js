@@ -80,6 +80,11 @@ const BIG_WHEEL_SEGMENTS = {
   joker: { label: "Joker", payout: 40, stopAngle: 297 },
   logo: { label: "Logo", payout: 40, stopAngle: 343 },
 };
+const ROULETTE_RED_NUMBERS = new Set(["1", "3", "5", "7", "9", "12", "14", "16", "18", "19", "21", "23", "25", "27", "30", "32", "34", "36"]);
+const ROULETTE_WHEEL_POCKETS = {
+  european: ["0", "32", "15", "19", "4", "21", "2", "25", "17", "34", "6", "27", "13", "36", "11", "30", "8", "23", "10", "5", "24", "16", "33", "1", "20", "14", "31", "9", "22", "18", "29", "7", "28", "12", "35", "3", "26"],
+  american: ["0", "28", "9", "26", "30", "11", "7", "20", "32", "17", "5", "22", "34", "15", "3", "24", "36", "13", "1", "00", "27", "10", "25", "29", "12", "8", "19", "31", "18", "6", "21", "33", "16", "4", "23", "35", "14", "2"],
+};
 const SLOT_BONUS_PLAYS = {
   freeThrows: {
     title: "Free Throws",
@@ -396,6 +401,7 @@ const elements = {
   slotVolatility: $("#slotVolatility"),
   rouletteAdvice: $("#rouletteAdvice"),
   rouletteWheel: $("#rouletteWheel"),
+  roulettePocketRing: $("#roulettePocketRing"),
   rouletteResult: $("#rouletteResult"),
   rouletteLayout: $("#rouletteLayout"),
   rouletteWheelType: $("#rouletteWheelType"),
@@ -2301,16 +2307,19 @@ function renderSlotSymbol(symbol, index) {
 }
 
 function setupRoulette() {
-  [elements.rouletteWheelType, elements.rouletteBetType, elements.rouletteBetTarget, elements.rouletteUnit].forEach((input) =>
-    input.addEventListener("input", () => {
+  [elements.rouletteWheelType, elements.rouletteBetType, elements.rouletteBetTarget, elements.rouletteUnit].forEach((input) => {
+    const handleRouletteInput = () => {
       playGameSound("ui", "tap");
       if (input === elements.rouletteBetType) syncRouletteBetTargetFromType();
       if (input === elements.rouletteBetTarget) syncRouletteBetType();
+      if (input === elements.rouletteWheelType) renderRouletteWheelNumbers();
       renderRouletteChips();
       updateRouletteAdvice();
       updateRouletteBetLedger();
-    }),
-  );
+    };
+    input.addEventListener("input", handleRouletteInput);
+    input.addEventListener("change", handleRouletteInput);
+  });
   elements.rouletteLayout.addEventListener("click", (event) => {
     const target = event.target.closest("[data-bet]");
     if (!target) return;
@@ -2321,6 +2330,7 @@ function setupRoulette() {
   elements.roulettePlaceBetButton.addEventListener("click", () => placeRouletteBet());
   elements.rouletteSpinButton.addEventListener("click", () => spinRouletteWheel());
   elements.rouletteClearBetButton.addEventListener("click", () => clearRouletteBet());
+  renderRouletteWheelNumbers();
   syncRouletteBetType();
   renderRouletteChips();
   updateRouletteBetLedger();
@@ -2394,14 +2404,23 @@ function renderRouletteChips() {
   });
 }
 
+function renderRouletteWheelNumbers() {
+  const pockets = ROULETTE_WHEEL_POCKETS[elements.rouletteWheelType.value] || ROULETTE_WHEEL_POCKETS.european;
+  elements.roulettePocketRing.innerHTML = pockets
+    .map((pocket, index) => {
+      const color = pocket === "0" || pocket === "00" ? "green" : ROULETTE_RED_NUMBERS.has(pocket) ? "red" : "black";
+      return `<span class="${color}" style="--pocket-index:${index}; --pocket-count:${pockets.length};">${pocket}</span>`;
+    })
+    .join("");
+}
+
 function spinRouletteWheel() {
   const isAmerican = elements.rouletteWheelType.value === "american";
   const pockets = isAmerican
     ? ["0", "00", ...Array.from({ length: 36 }, (_, index) => String(index + 1))]
     : ["0", ...Array.from({ length: 36 }, (_, index) => String(index + 1))];
   const result = randomItem(pockets);
-  const redNumbers = new Set(["1", "3", "5", "7", "9", "12", "14", "16", "18", "19", "21", "23", "25", "27", "30", "32", "34", "36"]);
-  const color = result === "0" || result === "00" ? "green" : redNumbers.has(result) ? "red" : "black";
+  const color = result === "0" || result === "00" ? "green" : ROULETTE_RED_NUMBERS.has(result) ? "red" : "black";
 
   elements.rouletteResult.textContent = result;
   elements.rouletteWheel.dataset.result = color;
