@@ -1017,10 +1017,14 @@
 }
 
 .slot-machine.basketball-slot-machine .slot-bet-badge {
-  right: 18px;
-  top: 112px;
-  min-width: 192px;
-  max-width: calc(100% - 36px);
+  position: relative;
+  right: auto;
+  top: auto;
+  z-index: 8;
+  width: min(360px, var(--slot-stage-width));
+  min-width: 0;
+  max-width: var(--slot-stage-width);
+  margin: -4px auto 10px;
   border-color: #72e2ff;
   background: #07111f;
   padding: 8px 12px;
